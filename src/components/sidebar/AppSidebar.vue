@@ -42,7 +42,7 @@ const data = computed(() => ({
     },
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/settings",
       icon: Settings2,
       items: [
         { title: "General", url: "/dashboard/settings/general" },

@@ -11,8 +11,9 @@ import Account from '@/components/pages/user/Account.vue'
 import UserSettings from '@/components/pages/user/UserSettings.vue'
 import Notifications from '@/components/pages/user/Notifications.vue'
 import Resource from '@/components/pages/Resource.vue'
-import General from '@/components/pages/General.vue'
-import Billing from '@/components/pages/Billing.vue'
+import General from '@/components/pages/settings/General.vue'
+import Billing from '@/components/pages/settings/Billing.vue'
+import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -74,6 +75,11 @@ const router = createRouter({
           component: Notifications
         },
         // Settings 子页
+        {
+          path: 'settings',
+          name: 'settings',
+          component: SettingsPage
+        },
         {
           path: 'settings/general',
           name: 'settings-general',

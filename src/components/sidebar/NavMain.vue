@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { LucideIcon } from "lucide-vue-next"
 import { ChevronRight } from "lucide-vue-next"
+import { RouterLink } from 'vue-router'
 import {
   Collapsible,
   CollapsibleContent,
@@ -44,13 +45,20 @@ defineProps<{
           class="group/collapsible"
         >
           <SidebarMenuItem>
-            <CollapsibleTrigger as-child>
-              <SidebarMenuButton :tooltip="item.title">
-                <component :is="item.icon" v-if="item.icon" />
-                <span>{{ item.title }}</span>
-                <ChevronRight class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+            <div class="flex items-center">
+              <SidebarMenuButton as-child :tooltip="item.title" class="flex-1 rounded-r-none">
+                <RouterLink :to="item.url">
+                  <component :is="item.icon" v-if="item.icon" />
+                  <span>{{ item.title }}</span>
+                </RouterLink>
               </SidebarMenuButton>
-            </CollapsibleTrigger>
+              <CollapsibleTrigger as-child>
+                <SidebarMenuButton class="w-8 rounded-l-none p-0 justify-center">
+                  <ChevronRight class="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+            </div>
+
             <CollapsibleContent>
               <SidebarMenuSub>
                 <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
@@ -62,6 +70,7 @@ defineProps<{
                 </SidebarMenuSubItem>
               </SidebarMenuSub>
             </CollapsibleContent>
+            
           </SidebarMenuItem>
         </Collapsible>
 
