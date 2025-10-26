@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import Login from '@/components/Login.vue'
 import Register from '@/components/Register.vue'
-import Homeview from '@/views/Homeview.vue'
+import LandingPage from '@/components/pages/LandingPage.vue'
+import DashboardPage from '@/components/pages/DashboardPage.vue'
 import ForgotPassword from '@/components/auth/ForgotPassword.vue'
 
 const router = createRouter({
@@ -11,7 +12,8 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: Homeview
+      component: LandingPage,
+      meta: { guestOnly: true }
     },
     {
       path: '/login',
@@ -30,20 +32,35 @@ const router = createRouter({
       name: 'forgot-password',
       component: ForgotPassword,
       meta: { guestOnly: true }
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardPage,
+      meta: { requiresAuth: true }  
     }
-     
   ]
 })
 
 // 全局导航守卫
 router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore();  
+  const userStore = useUserStore();
   
-  if (to.meta.guestOnly && userStore.isLoggedIn) {
-    // 如果用户已登录，但想访问登录/注册页，则将他们重定向到首页
-    next({ name: 'home' });
+  // 只在会话未检查过时才调用 restoreSession
+  if (!userStore.sessionChecked) {
+    await userStore.restoreSession();
+  }
+
+  const isAuthenticated = userStore.isLoggedIn;
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    // 需要登录但未登录，跳转到登录页
+    next({ name: 'login' });
+  } else if (to.meta.guestOnly && isAuthenticated) {
+    // 只允许访客访问但已登录，跳转到仪表盘
+    next({ name: 'dashboard' });
   } else {
-    // 否则正常放行
+    // 其他情况正常放行
     next();
   }
 });

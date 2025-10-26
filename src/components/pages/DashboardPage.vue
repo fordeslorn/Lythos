@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user';
+import { Button } from '@/components/ui/button';
+
 const userStore = useUserStore();
 </script>
 
 <template>
-  <div class="p-8">
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Welcome, {{ userStore.userName }}!</h1>
-      <button @click="userStore.logout()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-        Logout
-      </button>
-    </div>
-    <div class="bg-white p-6 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-4">Your Dashboard</h2>
-      <p>This is where your tasks, updates, and statistics will be displayed.</p>
-    </div>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-zinc-900 text-center p-4">
+    <h1 class="text-5xl font-bold mb-4 dark:text-white">Dashboard</h1>
+    <p class="text-xl text-gray-600 dark:text-gray-300 mb-4">
+      Welcome, {{ userStore.userName }}!
+    </p>
+    <p class="text-md text-gray-500 dark:text-gray-400 mb-8">
+      Email: {{ userStore.userEmail }}
+    </p>
+    
+    <Button @click="userStore.logout()" variant="outline">
+      Log out
+    </Button>
   </div>
 </template>

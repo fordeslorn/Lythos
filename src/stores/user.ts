@@ -8,6 +8,8 @@ export const useUserStore = defineStore('user', () => {
     // State (状态)
     const userId = ref<string | null>(null)
     const userName = ref<string | null>(null)
+    const userEmail = ref<string | null>(null)
+    const sessionChecked = ref(false) 
 
     const isLoggedIn = computed(() => !!userId.value)
 
@@ -15,6 +17,8 @@ export const useUserStore = defineStore('user', () => {
     if (import.meta.env.DEV && import.meta.env.VITE_MOCK_LOGGED_IN === 'true') {
       userId.value = 'mock-user-id';
       userName.value = 'Dev User';
+      userEmail.value = 'dev@example.com';
+      sessionChecked.value = true; 
     }
 
     // Actions (方法)
@@ -24,22 +28,33 @@ export const useUserStore = defineStore('user', () => {
    */
     async function restoreSession() {
         // 如果正在检查，或已经登录了，就没必要再检查了
-        if (isLoggedIn.value) return
+        if (isLoggedIn.value) {
+            sessionChecked.value = true;
+            return;
+        }
 
         try {
             const response = await apiClient.get('/me');
             if (response.data) {
-                setUser({ id: response.data.user.id, name: response.data.user.username });
-        }
+                setUser({ 
+                    id: response.data.user.id, 
+                    name: response.data.user.username,
+                    email: response.data.user.email,
+                });
+            }
         } catch (error) {
             console.error('用户未登录或 token 失效', error)
+        } finally {
+            sessionChecked.value = true;  
         }
     }
 
     // 设置用户信息并更新登录状态
-    function setUser(userData: { id: string; name: string }) {
+    function setUser(userData: { id: string; name: string; email: string }) {
         userId.value = userData.id
         userName.value = userData.name
+        userEmail.value = userData.email
+        sessionChecked.value = true
     }
 
     async function logout() {
@@ -50,6 +65,8 @@ export const useUserStore = defineStore('user', () => {
         } finally {
             userId.value = null
             userName.value = null
+            userEmail.value = null
+            sessionChecked.value = false
             // 退出后，强制跳转到未登录的首页
             router.push('/')
         }
@@ -58,6 +75,8 @@ export const useUserStore = defineStore('user', () => {
     return {
     userId,
     userName,
+    userEmail,
+    sessionChecked,
     isLoggedIn,
     setUser,
     logout,
