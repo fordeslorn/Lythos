@@ -9,6 +9,7 @@ export const useUserStore = defineStore('user', () => {
     const userId = ref<string | null>(null)
     const userName = ref<string | null>(null)
     const userEmail = ref<string | null>(null)
+    const userAvatar = ref<string | null>(null)
     const sessionChecked = ref(false) 
 
     const isLoggedIn = computed(() => !!userId.value)
@@ -18,6 +19,7 @@ export const useUserStore = defineStore('user', () => {
       userId.value = 'mock-user-id';
       userName.value = 'Dev User';
       userEmail.value = 'dev@example.com';
+      userAvatar.value = '/avatars/shadcn.jpg';
       sessionChecked.value = true; 
     }
 
@@ -40,6 +42,7 @@ export const useUserStore = defineStore('user', () => {
                     id: response.data.user.id, 
                     name: response.data.user.username,
                     email: response.data.user.email,
+                    avatar: response.data.user.avatar,
                 });
             }
         } catch (error) {
@@ -50,10 +53,11 @@ export const useUserStore = defineStore('user', () => {
     }
 
     // 设置用户信息并更新登录状态
-    function setUser(userData: { id: string; name: string; email: string }) {
+    function setUser(userData: { id: string; name: string; email: string; avatar?: string | null }) {
         userId.value = userData.id
         userName.value = userData.name
         userEmail.value = userData.email
+        userAvatar.value = userData.avatar || null
         sessionChecked.value = true
     }
 
@@ -66,6 +70,7 @@ export const useUserStore = defineStore('user', () => {
             userId.value = null
             userName.value = null
             userEmail.value = null
+            userAvatar.value = null
             sessionChecked.value = false
             // 退出后，强制跳转到未登录的首页
             router.push('/')
@@ -76,6 +81,7 @@ export const useUserStore = defineStore('user', () => {
     userId,
     userName,
     userEmail,
+    userAvatar,
     sessionChecked,
     isLoggedIn,
     setUser,
