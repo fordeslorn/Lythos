@@ -6,10 +6,12 @@ import { computed } from 'vue'
 import {
   LayoutDashboard,
   Settings2,
+  Snowflake,
 } from "lucide-vue-next"
 
 import NavMain from '@/components/sidebar/NavMain.vue'
 import NavUser from '@/components/sidebar/NavUser.vue'
+import SidebarBrand from '@/components/sidebar/SidebarBrand.vue'
 
 import {
   Sidebar,
@@ -50,9 +52,7 @@ const data = computed(() => ({
 <template>
   <Sidebar v-bind="props">
     <SidebarHeader>
-      <div class="flex items-center justify-center p-4">
-        <h1 class="text-xl font-semibold">Vue</h1>
-      </div>
+      <SidebarBrand :icon="Snowflake" title="Vue System" />
     </SidebarHeader>
 
     <SidebarContent>
