@@ -1,22 +1,15 @@
 <script setup lang="ts">
 import type { SidebarProps } from '@/components/ui/sidebar'
+import { useUserStore } from '@/stores/user'
+import { computed } from 'vue'
 
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
+  LayoutDashboard,
   Settings2,
-  SquareTerminal,
 } from "lucide-vue-next"
+
 import NavMain from '@/components/sidebar/NavMain.vue'
-import NavProjects from '@/components/sidebar/NavProjects.vue'
 import NavUser from '@/components/sidebar/NavUser.vue'
-import TeamSwitcher from '@/components/sidebar/TeamSwitcher.vue'
 
 import {
   Sidebar,
@@ -30,149 +23,57 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: "icon",
 })
 
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+const userStore = useUserStore()
+
+const data = computed(() => ({
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutDashboard,
       isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
     },
     {
       title: "Settings",
       url: "#",
       icon: Settings2,
       items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
+        { title: "General", url: "#" },
+        { title: "Team", url: "#" },
+        { title: "Billing", url: "#" },
       ],
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+}))
 </script>
 
 <template>
   <Sidebar v-bind="props">
     <SidebarHeader>
-      <TeamSwitcher :teams="data.teams" />
+      <div class="flex items-center justify-center p-4">
+        <h1 class="text-xl font-semibold">Vue</h1>
+      </div>
     </SidebarHeader>
+
     <SidebarContent>
       <NavMain :items="data.navMain" />
-      <NavProjects :projects="data.projects" />
     </SidebarContent>
+
     <SidebarFooter>
-      <NavUser :user="data.user" />
+      <NavUser 
+        v-if="userStore.isLoggedIn" 
+        :user="{
+          name: userStore.userName!,
+          email: userStore.userEmail!,
+          avatar: '/avatars/shadcn.jpg'
+        }" 
+      />
+      
+      <div v-else class="p-4">
+        <div class="h-10 w-full bg-zinc-800 animate-pulse rounded-md"></div>
+      </div>
     </SidebarFooter>
+
     <SidebarRail />
   </Sidebar>
 </template>

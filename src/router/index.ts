@@ -4,6 +4,7 @@ import Login from '@/components/Login.vue'
 import Register from '@/components/Register.vue'
 import LandingPage from '@/components/pages/LandingPage.vue'
 import DashboardPage from '@/components/pages/DashboardPage.vue'
+import DashboardLayout from '@/components/pages/DashboardLayout.vue'
 import ForgotPassword from '@/components/auth/ForgotPassword.vue'
 
 const router = createRouter({
@@ -35,9 +36,15 @@ const router = createRouter({
     },
     {
       path: '/dashboard',
-      name: 'dashboard',
-      component: DashboardPage,
-      meta: { requiresAuth: true }  
+      component: DashboardLayout,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'dashboard',
+          component: DashboardPage,
+        },
+      ]
     }
   ]
 })
