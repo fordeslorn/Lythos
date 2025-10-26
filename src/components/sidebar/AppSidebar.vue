@@ -37,16 +37,16 @@ const data = computed(() => ({
     },
     {
       title: "Resource",
-      url: "/dashboard/resource",
+      url: "/resource",
       icon: Package,
     },
     {
       title: "Settings",
-      url: "/dashboard/settings",
+      url: "/settings",
       icon: Settings2,
       items: [
-        { title: "General", url: "/dashboard/settings/general" },
-        { title: "Billing", url: "/dashboard/settings/billing" },
+        { title: "General", url: "/settings/general" },
+        { title: "Billing", url: "/settings/billing" },
       ],
     },
   ],

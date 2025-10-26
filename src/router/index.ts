@@ -43,13 +43,12 @@ const router = createRouter({
       meta: { guestOnly: true }
     },
     {
-      path: '/dashboard',
+      path: '/',
       component: DashboardLayout,
       meta: { requiresAuth: true },
       children: [
-        // Dashboard 子页
         {
-          path: '',
+          path: 'dashboard',
           name: 'dashboard',
           component: DashboardPage,
         },
@@ -58,37 +57,21 @@ const router = createRouter({
           name: 'resource',
           component: Resource
         },
-        // 用户配置
-        {
-          path: 'user/account',
-          name: 'user-account',
-          component: Account
-        },
-        {
-          path: 'user/settings',
-          name: 'user-settings',
-          component: UserSettings
-        },
-        {
-          path: 'user/notifications',
-          name: 'user-notifications',
-          component: Notifications
-        },
-        // Settings 子页
         {
           path: 'settings',
-          name: 'settings',
-          component: SettingsPage
+          children: [
+            { path: '', name: 'settings', component: SettingsPage },// 这个空的 path 子路由使得 /settings 路径本身可以渲染一个组件
+            { path: 'general', name: 'settings-general', component: General },
+            { path: 'billing', name: 'settings-billing', component: Billing },
+          ]
         },
         {
-          path: 'settings/general',
-          name: 'settings-general',
-          component: General
-        },
-        {
-          path: 'settings/billing',
-          name: 'settings-billing',
-          component: Billing
+          path: 'user',
+          children: [
+            { path: 'account', name: 'user-account', component: Account },
+            { path: 'settings', name: 'user-settings', component: UserSettings },
+            { path: 'notifications', name: 'user-notifications', component: Notifications },
+          ]
         },
       ]
     }

@@ -82,17 +82,17 @@ const userStore = useUserStore()
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            <RouterLink to="/dashboard/user/account" custom v-slot="{ navigate }">
+            <RouterLink to="/user/account" custom v-slot="{ navigate }">
               <DropdownMenuItem @click="navigate">
                 Account
               </DropdownMenuItem>
             </RouterLink>
-            <RouterLink to="/dashboard/user/settings" custom v-slot="{ navigate }">
+            <RouterLink to="/user/settings" custom v-slot="{ navigate }">
               <DropdownMenuItem @click="navigate">
                 Settings
               </DropdownMenuItem>
             </RouterLink>
-            <RouterLink to="/dashboard/user/notifications" custom v-slot="{ navigate }">
+            <RouterLink to="/user/notifications" custom v-slot="{ navigate }">
               <DropdownMenuItem @click="navigate">
                 Notifications
               </DropdownMenuItem>
