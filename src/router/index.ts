@@ -2,9 +2,18 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import Login from '@/components/Login.vue'
 import Register from '@/components/Register.vue'
+import ForgotPassword from '@/components/auth/ForgotPassword.vue'
+
 import LandingPage from '@/components/pages/LandingPage.vue'
 import DashboardPage from '@/components/pages/DashboardPage.vue'
-import ForgotPassword from '@/components/auth/ForgotPassword.vue'
+import DashboardLayout from '@/components/pages/DashboardLayout.vue'
+import Account from '@/components/pages/user/Account.vue'
+import UserSettings from '@/components/pages/user/UserSettings.vue'
+import Notifications from '@/components/pages/user/Notifications.vue'
+import Resource from '@/components/pages/resource/Resource.vue'
+import General from '@/components/pages/settings/General.vue'
+import Billing from '@/components/pages/settings/Billing.vue'
+import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,10 +43,37 @@ const router = createRouter({
       meta: { guestOnly: true }
     },
     {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: DashboardPage,
-      meta: { requiresAuth: true }  
+      path: '/',
+      component: DashboardLayout,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: DashboardPage,
+        },
+        {
+          path: 'resource',
+          name: 'resource',
+          component: Resource
+        },
+        {
+          path: 'settings',
+          children: [
+            { path: '', name: 'settings', component: SettingsPage },// 这个空的 path 子路由使得 /settings 路径本身可以渲染一个组件
+            { path: 'general', name: 'settings-general', component: General },
+            { path: 'billing', name: 'settings-billing', component: Billing },
+          ]
+        },
+        {
+          path: 'user',
+          children: [
+            { path: 'account', name: 'user-account', component: Account },
+            { path: 'settings', name: 'user-settings', component: UserSettings },
+            { path: 'notifications', name: 'user-notifications', component: Notifications },
+          ]
+        },
+      ]
     }
   ]
 })

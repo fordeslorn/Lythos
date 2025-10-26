@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user';
-import { Button } from '@/components/ui/button';
 
 const userStore = useUserStore();
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-zinc-900 text-center p-4">
-    <h1 class="text-5xl font-bold mb-4 dark:text-white">Dashboard</h1>
-    <p class="text-xl text-gray-600 dark:text-gray-300 mb-4">
-      Welcome, {{ userStore.userName }}!
-    </p>
-    <p class="text-md text-gray-500 dark:text-gray-400 mb-8">
-      Email: {{ userStore.userEmail }}
-    </p>
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
+      <p class="text-muted-foreground">
+        Welcome back, {{ userStore.userName }}!
+      </p>
+    </div>
     
-    <Button @click="userStore.logout()" variant="outline">
-      Log out
-    </Button>
+    <div class="rounded-lg border bg-card p-6">
+      <h2 class="text-xl font-semibold mb-2">Your Account</h2>
+      <p class="text-sm text-muted-foreground mb-4">
+        Email: {{ userStore.userEmail }}
+      </p>
+    </div>
+    
   </div>
 </template>
