@@ -2,10 +2,17 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import Login from '@/components/Login.vue'
 import Register from '@/components/Register.vue'
+import ForgotPassword from '@/components/auth/ForgotPassword.vue'
+
 import LandingPage from '@/components/pages/LandingPage.vue'
 import DashboardPage from '@/components/pages/DashboardPage.vue'
 import DashboardLayout from '@/components/pages/DashboardLayout.vue'
-import ForgotPassword from '@/components/auth/ForgotPassword.vue'
+import Account from '@/components/pages/user/Account.vue'
+import UserSettings from '@/components/pages/user/UserSettings.vue'
+import Notifications from '@/components/pages/user/Notifications.vue'
+import Resource from '@/components/pages/Resource.vue'
+import General from '@/components/pages/General.vue'
+import Billing from '@/components/pages/Billing.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,10 +46,43 @@ const router = createRouter({
       component: DashboardLayout,
       meta: { requiresAuth: true },
       children: [
+        // Dashboard 子页
         {
           path: '',
           name: 'dashboard',
           component: DashboardPage,
+        },
+        {
+          path: 'resource',
+          name: 'resource',
+          component: Resource
+        },
+        // 用户配置
+        {
+          path: 'user/account',
+          name: 'user-account',
+          component: Account
+        },
+        {
+          path: 'user/settings',
+          name: 'user-settings',
+          component: UserSettings
+        },
+        {
+          path: 'user/notifications',
+          name: 'user-notifications',
+          component: Notifications
+        },
+        // Settings 子页
+        {
+          path: 'settings/general',
+          name: 'settings-general',
+          component: General
+        },
+        {
+          path: 'settings/billing',
+          name: 'settings-billing',
+          component: Billing
         },
       ]
     }

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Settings2,
   Snowflake,
+  Package,
 } from "lucide-vue-next"
 
 import NavMain from '@/components/sidebar/NavMain.vue'
@@ -33,16 +34,19 @@ const data = computed(() => ({
       title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboard,
-      isActive: true,
+    },
+    {
+      title: "Resource",
+      url: "/dashboard/resource",
+      icon: Package,
     },
     {
       title: "Settings",
       url: "#",
       icon: Settings2,
       items: [
-        { title: "General", url: "#" },
-        { title: "Team", url: "#" },
-        { title: "Billing", url: "#" },
+        { title: "General", url: "/dashboard/settings/general" },
+        { title: "Billing", url: "/dashboard/settings/billing" },
       ],
     },
   ],
