@@ -88,6 +88,7 @@ async function onCaptchaSuccess(code: string) {
     const userData = {
       id: response.data.user.id,
       name: response.data.user.username,
+      email: response.data.user.email,
     };
 
     // 将后端返回的用户信息存入 Pinia 全局状态
@@ -96,7 +97,7 @@ async function onCaptchaSuccess(code: string) {
     await nextTick();
 
     // 登录成功后跳转到主页面
-    router.replace('/');
+    router.replace({ name: 'dashboard' });
   } catch (error: any) {
     
     console.error('Login failed:', error);
