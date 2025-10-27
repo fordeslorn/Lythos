@@ -17,7 +17,7 @@ const notificationStore = useNotificationStore()
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const localPreview = ref<string | null>(null);
 const avatarPreview = computed(() => localPreview.value || userStore.userAvatar || '/avatars/shadcn.jpg')
-const username = ref(userStore.userName || '')
+const newUsername = ref('')
 const newEmail = ref('')
 const emailVerificationCode = ref('')
 const oldPassword = ref('')
@@ -28,7 +28,7 @@ const isSendingCode = ref(false)
 const countdown = ref(0)
 
 // --- Refs for error messages ---
-const usernameError = ref('')
+const newUsernameError = ref('')
 const newEmailError = ref('')
 const emailVerificationCodeError = ref('')
 const oldPasswordError = ref('')
@@ -43,8 +43,8 @@ const sendCodeButtonText = computed(() => {
 })
 
 // --- Validation functions ---
-watch(username, (value) => {
-  usernameError.value = value ? '' : 'Username cannot be empty.'
+watch(newUsername, (value) => {
+  newUsernameError.value = value ? '' : 'Username cannot be empty.'
 })
 watch(newEmail, (value) => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -115,19 +115,20 @@ async function onFileSelected(event: Event) {
 
 // Username
 async function handleUpdateUsername() {
-  if (!username.value) {
-    usernameError.value = 'Username cannot be empty.'
+  if (!newUsername.value) {
+    newUsernameError.value = 'Username cannot be empty.'
     return
   }
   try {
-    await apiClient.put('/user/username', { name: username.value })
+    await apiClient.put('/user/username', { name: newUsername.value })
     userStore.setUser({
       id: userStore.userId!,
-      name: username.value,
+      name: newUsername.value,
       email: userStore.userEmail!,
       avatar: userStore.userAvatar,
     })
     notificationStore.showNotification('Username updated successfully!', 'success')
+    newUsername.value = ''
   } catch (error) {
     notificationStore.showNotification('Failed to update username.', 'error')
   }
@@ -240,9 +241,9 @@ async function handleUpdatePassword() {
         </CardHeader>
         <CardContent>
           <div class="grid gap-2">
-            <Label for="username">Username</Label>
-            <Input id="username" v-model="username" />
-            <p v-if="usernameError" class="text-sm text-red-400">{{ usernameError }}</p>
+            <Label for="username">New Username</Label>
+            <Input id="username" v-model="newUsername" placeholder="Enter your new username" />
+            <p v-if="newUsernameError" class="text-sm text-red-400">{{ newUsernameError }}</p>
           </div>
         </CardContent>
         <CardFooter class="px-6 py-4 flex justify-end">
@@ -291,12 +292,12 @@ async function handleUpdatePassword() {
         <CardContent class="grid gap-4">
           <div class="grid gap-2">
             <Label for="old-password">Old Password</Label>
-            <Input id="old-password" v-model="oldPassword" type="password" />
+            <Input id="old-password" v-model="oldPassword" type="password" placeholder="Enter your old password" />
             <p v-if="oldPasswordError" class="text-sm text-red-400">{{ oldPasswordError }}</p>
           </div>
           <div class="grid gap-2">
             <Label for="new-password">New Password</Label>
-            <Input id="new-password" v-model="newPassword" type="password" />
+            <Input id="new-password" v-model="newPassword" type="password" placeholder="Enter your new password" />
             <p v-if="newPasswordError" class="text-sm text-red-400">{{ newPasswordError }}</p>
           </div>
         </CardContent>
