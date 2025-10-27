@@ -15,7 +15,8 @@ const notificationStore = useNotificationStore()
 
 // --- Refs for data binding ---
 const avatarInputRef = ref<HTMLInputElement | null>(null)
-const avatarPreview = ref(userStore.userAvatar || '/avatars/shadcn.jpg')
+const localPreview = ref<string | null>(null);
+const avatarPreview = computed(() => localPreview.value || userStore.userAvatar || '/avatars/shadcn.jpg')
 const username = ref(userStore.userName || '')
 const newEmail = ref('')
 const emailVerificationCode = ref('')
@@ -85,7 +86,7 @@ async function onFileSelected(event: Event) {
   if (!file) return
 
   // Create a preview
-  avatarPreview.value = URL.createObjectURL(file)
+  localPreview.value = URL.createObjectURL(file)
 
   // Upload the file
   const formData = new FormData()
@@ -95,6 +96,8 @@ async function onFileSelected(event: Event) {
     const response = await apiClient.post('/user/avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
+
+    localPreview.value = null
     // Update user store with the new avatar URL from the server
     userStore.setUser({
       id: userStore.userId!,
@@ -106,7 +109,7 @@ async function onFileSelected(event: Event) {
   } catch (error) {
     notificationStore.showNotification('Failed to upload avatar.', 'error')
     // Revert preview if upload fails
-    avatarPreview.value = userStore.userAvatar || '/avatars/shadcn.jpg'
+    localPreview.value = null
   }
 }
 
@@ -117,7 +120,7 @@ async function handleUpdateUsername() {
     return
   }
   try {
-    await apiClient.put('/user/profile', { name: username.value })
+    await apiClient.put('/user/username', { name: username.value })
     userStore.setUser({
       id: userStore.userId!,
       name: username.value,

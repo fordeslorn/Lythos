@@ -42,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
                     id: response.data.user.id, 
                     name: response.data.user.username,
                     email: response.data.user.email,
-                    avatar: response.data.user.avatar,
+                    avatar: response.data.user.avatarUrl,
                 });
             }
         } catch (error) {
