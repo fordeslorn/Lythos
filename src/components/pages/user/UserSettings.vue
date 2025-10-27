@@ -9,12 +9,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Camera } from 'lucide-vue-next'
+import AvatarCropperModal from './AvatarCropperModal.vue'
 
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
 
 // --- Refs for data binding ---
-const avatarInputRef = ref<HTMLInputElement | null>(null)
+const isCropperModalOpen = ref(false)
 const localPreview = ref<string | null>(null);
 const avatarPreview = computed(() => localPreview.value || userStore.userAvatar || '/avatars/shadcn.jpg')
 const newUsername = ref('')
@@ -77,40 +79,11 @@ watch(newPassword, (value) => {
 
 // Avatar
 function handleAvatarClick() {
-  avatarInputRef.value?.click()
+  isCropperModalOpen.value = true
 }
-
-async function onFileSelected(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  // Create a preview
-  localPreview.value = URL.createObjectURL(file)
-
-  // Upload the file
-  const formData = new FormData()
-  formData.append('avatar', file)
-
-  try {
-    const response = await apiClient.post('/user/avatar', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-
-    localPreview.value = null
-    // Update user store with the new avatar URL from the server
-    userStore.setUser({
-      id: userStore.userId!,
-      name: userStore.userName!,
-      email: userStore.userEmail!,
-      avatar: response.data.avatarUrl,
-    })
-    notificationStore.showNotification('Avatar updated successfully!', 'success')
-  } catch (error) {
-    notificationStore.showNotification('Failed to upload avatar.', 'error')
-    // Revert preview if upload fails
-    localPreview.value = null
-  }
+function onAvatarUploadSuccess() {
+  isCropperModalOpen.value = false
+  console.log('Avatar upload successful, modal closed from parent.')
 }
 
 // Username
@@ -213,22 +186,23 @@ async function handleUpdatePassword() {
 
       <!-- Avatar Card -->
       <Card>
-        <CardHeader>
-          <CardTitle>Avatar</CardTitle>
-          <CardDescription>
-            This is your public avatar. <br />Click on the image to upload a new one.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div class="flex items-center justify-between">
-            <span class="text-sm text-muted-foreground">Update your profile picture.</span>
-            <Avatar class="h-16 w-16 cursor-pointer" @click="handleAvatarClick">
+        <CardHeader class="flex flex-row items-start justify-between">
+          <div>
+            <CardTitle>Avatar</CardTitle>
+            <CardDescription class="mt-2">
+              This is your public avatar. <br />Click on the image to upload a new one.
+            </CardDescription>
+          </div>
+          <div class="relative group cursor-pointer" @click="handleAvatarClick">
+            <Avatar class="h-16 w-16">
               <AvatarImage :src="avatarPreview" alt="User Avatar" />
               <AvatarFallback>{{ userStore.userName?.slice(0, 2).toUpperCase() }}</AvatarFallback>
             </Avatar>
-            <input ref="avatarInputRef" type="file" class="hidden" accept="image/png, image/jpeg, image/gif" @change="onFileSelected">
+            <div class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera class="w-6 h-6 text-white" />
+            </div>
           </div>
-        </CardContent>
+        </CardHeader>
       </Card>
 
       <!-- Username Card -->
@@ -306,5 +280,6 @@ async function handleUpdatePassword() {
         </CardFooter>
       </Card>
     </div>
+    <AvatarCropperModal v-model:open="isCropperModalOpen" @success="onAvatarUploadSuccess" />
   </div>
 </template>
