@@ -76,6 +76,16 @@ watch(newPassword, (value) => {
     newPasswordError.value = ''
   }
 })
+watch(isCropperModalOpen, (isOpen) => {
+  // 当模态框从打开状态变为关闭状态时
+  if (!isOpen && initialImageForModal.value) {
+    // 延迟一小段时间再清理，确保子组件的过渡动画完成
+    setTimeout(() => {
+      URL.revokeObjectURL(initialImageForModal.value!)
+      initialImageForModal.value = null
+    }, 300) // 300ms 足够大多数 CSS 过渡
+  }
+})
 
 // --- Event Handlers ---
 
@@ -103,6 +113,12 @@ function onInitialFileSelect(event: Event) {
 }
 function onAvatarUploadSuccess() {
   isCropperModalOpen.value = false
+
+  if (initialImageForModal.value) {
+    URL.revokeObjectURL(initialImageForModal.value)
+    initialImageForModal.value = null
+  }
+
   console.log('Avatar upload successful, modal closed from parent.')
 }
 
@@ -309,7 +325,6 @@ async function handleUpdatePassword() {
       :initial-image-url="initialImageForModal"
       @success="onAvatarUploadSuccess"
     />
-    <!-- [ADD] Hidden file input for initial selection -->
     <input
       ref="avatarFileInput"
       type="file"

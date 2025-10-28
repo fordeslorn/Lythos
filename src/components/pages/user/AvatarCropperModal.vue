@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Cropper, type CropperResult } from 'vue-advanced-cropper'
+import { Cropper, Preview, type CropperResult } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import apiClient from '@/api'
 import { useUserStore } from '@/stores/user'
@@ -14,8 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Slider } from '@/components/ui/slider'
-import { ZoomIn, ZoomOut } from 'lucide-vue-next'
+import { Upload } from 'lucide-vue-next'
 
 // --- Props & Emits ---
 const props = defineProps<{
@@ -33,10 +32,17 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // --- Internal State ---
 const imageSrc = ref<string | null>(null)
-const zoom = ref([0])
 const isLoading = ref(false)
 const resultCanvas = ref<HTMLCanvasElement | null>(null)
-const previewDataUrl = ref<string | null>(null)
+const cropperKey = ref(0) // [核心修复 1] 添加 key 用于强制重新渲染 Cropper
+// const previewDataUrl = ref<string | null>(null)
+const previewResult = ref<{
+  coordinates: CropperResult['coordinates'] | null
+  image: CropperResult['image'] | null
+}>({
+  coordinates: null,
+  image: null,
+})
 
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
@@ -56,26 +62,25 @@ function onFileChange(event: Event) {
   const file = target.files?.[0]
   if (!file) return
 
-  if (imageSrc.value) {
-    URL.revokeObjectURL(imageSrc.value)
-  }
+  // // [修复] 在加载新图片前，先刷新 cropper 状态
+  // if (cropperRef.value) {
+  //   cropperRef.value.refresh()
+  // }
+
+  // if (imageSrc.value) {
+  //   URL.revokeObjectURL(imageSrc.value)
+  // }
 
   imageSrc.value = URL.createObjectURL(file)
-  zoom.value = [0]
+  cropperKey.value++
+  previewResult.value = { coordinates: null, image: null }
 }
 
-function onCropChange({ canvas }: CropperResult) {
+function onCropChange({ coordinates, image, canvas }: CropperResult) {
   resultCanvas.value = canvas || null
-  previewDataUrl.value = canvas?.toDataURL() ?? null
-}
-
-// [修复] 添加实时更新函数
-function updatePreview() {
-  if (cropperRef.value) {
-    const { canvas } = cropperRef.value.getResult()
-    if (canvas) {
-      previewDataUrl.value = canvas.toDataURL()
-    }
+  previewResult.value = {
+    coordinates,
+    image,
   }
 }
 
@@ -121,30 +126,11 @@ async function onSave() {
 // --- Watchers ---
 watch(() => props.open, (isOpen) => {
   if (isOpen && props.initialImageUrl) {
-    // [ADD] When modal opens, load the initial image from props
-    if (imageSrc.value) {
-      URL.revokeObjectURL(imageSrc.value)
-    }
+    // 当模态框打开时，设置图片源并更新 key
     imageSrc.value = props.initialImageUrl
-    zoom.value = [0]
-  } else if (!isOpen) {
-    if (imageSrc.value) {
-      URL.revokeObjectURL(imageSrc.value)
-    }
-    imageSrc.value = null
-    zoom.value = [0]
-    resultCanvas.value = null
-    previewDataUrl.value = null
+    cropperKey.value++
   }
-})
-
-watch(zoom, (newZoom, oldZoom) => {
-  if (!cropperRef.value) return
-  // 计算缩放比例的差值
-  const diff = newZoom[0] - (oldZoom ? oldZoom[0] : 0)
-  // cropper.zoom 需要一个比例因子，例如 1.1 (放大10%) 或 0.9 (缩小10%)
-  // 我们将滑块的微小变化转换为一个缩放因子
-  cropperRef.value.zoom(1 + diff)
+  // 移除 else if (!isOpen) 部分，子组件不再负责关闭时的清理工作
 })
 </script>
 
@@ -165,12 +151,12 @@ watch(zoom, (newZoom, oldZoom) => {
             :stencil-props="{
               aspectRatio: 1,
             }"
+            :debounce="false"
             class="w-full h-full"
             @change="onCropChange"
-            @move-image="updatePreview"
-            @resize-image="updatePreview"
           />
-          <div v-else class="text-center text-gray-400">
+          <div v-else class="text-center flex flex-col items-center gap-2 text-gray-400">
+            <Upload class="w-10 h-10" />
             <p>No image selected.</p>
           </div>
         </div>
@@ -178,29 +164,15 @@ watch(zoom, (newZoom, oldZoom) => {
         <!-- Preview & Controls -->
         <div class="flex flex-col items-center gap-4 flex-shrink-0 m-6">
           <p class="font-semibold">头像预览</p>
-          <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-600 bg-zinc-800">
-             <div v-if="previewDataUrl" class="w-full h-full">
-                <img :src="previewDataUrl" alt="Preview" class="w-full h-full object-cover" />
-             </div>
-            <div v-else class="w-full h-full flex items-center justify-center text-xs text-gray-400">
-              预览
-            </div>
-          </div>
+          <Preview
+            :width="96"
+            :height="96"
+            :image="previewResult.image"
+            :coordinates="previewResult.coordinates"
+            class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 bg-gray-200"
+          />
           <Button variant="link" class="text-sm" @click="triggerFileInput">重新上传</Button>
         </div>
-      </div>
-
-      <!-- Zoom Slider -->
-      <div v-if="imageSrc" class="flex items-center gap-2 pt-4">
-        <ZoomOut class="w-5 h-5 cursor-pointer" @click="zoom = [Math.max(zoom[0] - 0.1, -1)]" />
-        <Slider
-          v-model="zoom"
-          :min="-1"
-          :max="1"
-          :step="0.01"
-          class="w-full"
-        />
-        <ZoomIn class="w-5 h-5 cursor-pointer" @click="zoom = [Math.min(zoom[0] + 0.1, 1)]" />
       </div>
 
       <DialogFooter>
