@@ -15,11 +15,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
-import { ZoomIn, ZoomOut, Upload } from 'lucide-vue-next'
+import { ZoomIn, ZoomOut } from 'lucide-vue-next'
 
 // --- Props & Emits ---
 const props = defineProps<{
   open: boolean
+  initialImageUrl: string | null
 }>()
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
@@ -41,10 +42,11 @@ const userStore = useUserStore()
 const notificationStore = useNotificationStore()
 
 // --- Methods ---
+// 抛出事件到父组件(v-model自动生效)，更新isCropperModalOpen为false
 function handleClose() {
   emit('update:open', false)
 }
-
+// 模拟点击隐藏的文件输入框
 function triggerFileInput() {
   fileInputRef.value?.click()
 }
@@ -118,7 +120,14 @@ async function onSave() {
 
 // --- Watchers ---
 watch(() => props.open, (isOpen) => {
-  if (!isOpen) {
+  if (isOpen && props.initialImageUrl) {
+    // [ADD] When modal opens, load the initial image from props
+    if (imageSrc.value) {
+      URL.revokeObjectURL(imageSrc.value)
+    }
+    imageSrc.value = props.initialImageUrl
+    zoom.value = [0]
+  } else if (!isOpen) {
     if (imageSrc.value) {
       URL.revokeObjectURL(imageSrc.value)
     }
@@ -141,12 +150,12 @@ watch(zoom, (newZoom, oldZoom) => {
 
 <template>
   <Dialog :open="open" @update:open="handleClose">
-    <DialogContent class="sm:max-w-[600px] bg-zinc-900 text-white border border-white/20 rounded-2xl shadow-lg">
+    <DialogContent class="sm:max-w-[600px] bg-gray-100 text-gray-900 border border-gray-200 rounded-2xl shadow-lg">
       <DialogHeader>
-        <DialogTitle class="m-4">修改头像</DialogTitle>
+        <DialogTitle class="m-6">修改头像</DialogTitle>
       </DialogHeader>
 
-      <div class="flex flex-col md:flex-row gap-6 items-start p-4">
+      <div class="flex flex-col md:flex-row gap-6 items-start p-6">
         <!-- Cropper Area -->
         <div class="w-80 h-80 border border-dashed border-gray-500 rounded-lg flex items-center justify-center relative bg-zinc-800/50">
           <Cropper
@@ -158,16 +167,16 @@ watch(zoom, (newZoom, oldZoom) => {
             }"
             class="w-full h-full"
             @change="onCropChange"
+            @move-image="updatePreview"
+            @resize-image="updatePreview"
           />
-          <div v-else class="text-center flex flex-col items-center gap-2">
-            <Upload class="w-10 h-10 text-gray-500" />
-            <p class="text-gray-400">请上传图片</p>
-            <Button variant="link" class="text-pink-400" @click="triggerFileInput">点击上传</Button>
+          <div v-else class="text-center text-gray-400">
+            <p>No image selected.</p>
           </div>
         </div>
 
         <!-- Preview & Controls -->
-        <div class="flex flex-col items-center gap-4 flex-shrink-0">
+        <div class="flex flex-col items-center gap-4 flex-shrink-0 m-6">
           <p class="font-semibold">头像预览</p>
           <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-600 bg-zinc-800">
              <div v-if="previewDataUrl" class="w-full h-full">
@@ -196,14 +205,14 @@ watch(zoom, (newZoom, oldZoom) => {
 
       <DialogFooter>
         <Button
-          class="bg-black/20 text-gray-300 hover:bg-gray-700 border border-white/10"
+          class="text-black/300 hover:bg-gray-100 border border-black/10"
           variant="outline"
           @click="handleClose"
         >
           取消
         </Button>
         <Button
-          class="bg-pink-600 hover:bg-pink-700 text-white border border-white/20"
+          class="hover:bg-black/75 text-white border border-white/20"
           @click="onSave"
           :disabled="!imageSrc || isLoading"
         >

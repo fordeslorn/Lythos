@@ -17,6 +17,8 @@ const notificationStore = useNotificationStore()
 
 // --- Refs for data binding ---
 const isCropperModalOpen = ref(false)
+const initialImageForModal = ref<string | null>(null)
+const avatarFileInput = ref<HTMLInputElement | null>(null) 
 const localPreview = ref<string | null>(null);
 const avatarPreview = computed(() => localPreview.value || userStore.userAvatar || '/avatars/shadcn.jpg')
 const newUsername = ref('')
@@ -78,8 +80,26 @@ watch(newPassword, (value) => {
 // --- Event Handlers ---
 
 // Avatar
+// click the hidden file input
 function handleAvatarClick() {
+  avatarFileInput.value?.click()
+}
+// handle the file selection from the new hidden input
+function onInitialFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  // Revoke previous URL if it exists
+  if (initialImageForModal.value) {
+    URL.revokeObjectURL(initialImageForModal.value)
+  }
+
+  initialImageForModal.value = URL.createObjectURL(file)
   isCropperModalOpen.value = true
+
+  // Reset the input value to allow selecting the same file again
+  target.value = ''
 }
 function onAvatarUploadSuccess() {
   isCropperModalOpen.value = false
@@ -203,6 +223,9 @@ async function handleUpdatePassword() {
             </div>
           </div>
         </CardHeader>
+        <CardFooter class="px-6 py-4 text-sm text-gray-500">
+          Only JPG and PNG images are allowed. Maximum file size: 2MB.
+        </CardFooter>
       </Card>
 
       <!-- Username Card -->
@@ -280,6 +303,19 @@ async function handleUpdatePassword() {
         </CardFooter>
       </Card>
     </div>
-    <AvatarCropperModal v-model:open="isCropperModalOpen" @success="onAvatarUploadSuccess" />
+
+     <AvatarCropperModal
+      v-model:open="isCropperModalOpen"
+      :initial-image-url="initialImageForModal"
+      @success="onAvatarUploadSuccess"
+    />
+    <!-- [ADD] Hidden file input for initial selection -->
+    <input
+      ref="avatarFileInput"
+      type="file"
+      class="hidden"
+      accept="image/png, image/jpeg"
+      @change="onInitialFileSelect"
+    >
   </div>
 </template>
