@@ -24,18 +24,17 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
   (e: 'success'): void
+  (e: 'request-new-file'): void
 }>()
 
 // --- Component Refs ---
 const cropperRef = ref<InstanceType<typeof Cropper> | null>(null)
-const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // --- Internal State ---
 const imageSrc = ref<string | null>(null)
 const isLoading = ref(false)
 const resultCanvas = ref<HTMLCanvasElement | null>(null)
-const cropperKey = ref(0) // [核心修复 1] 添加 key 用于强制重新渲染 Cropper
-// const previewDataUrl = ref<string | null>(null)
+const cropperKey = ref(0) 
 const previewResult = ref<{
   coordinates: CropperResult['coordinates'] | null
   image: CropperResult['image'] | null
@@ -54,26 +53,7 @@ function handleClose() {
 }
 // 模拟点击隐藏的文件输入框
 function triggerFileInput() {
-  fileInputRef.value?.click()
-}
-
-function onFileChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  // // [修复] 在加载新图片前，先刷新 cropper 状态
-  // if (cropperRef.value) {
-  //   cropperRef.value.refresh()
-  // }
-
-  // if (imageSrc.value) {
-  //   URL.revokeObjectURL(imageSrc.value)
-  // }
-
-  imageSrc.value = URL.createObjectURL(file)
-  cropperKey.value++
-  previewResult.value = { coordinates: null, image: null }
+  emit('request-new-file')
 }
 
 function onCropChange({ coordinates, image, canvas }: CropperResult) {
@@ -124,13 +104,23 @@ async function onSave() {
 }
 
 // --- Watchers ---
-watch(() => props.open, (isOpen) => {
-  if (isOpen && props.initialImageUrl) {
-    // 当模态框打开时，设置图片源并更新 key
-    imageSrc.value = props.initialImageUrl
+watch(() => props.initialImageUrl, (newUrl) => {
+  // 监听 initialImageUrl 的变化来更新图片
+  if (newUrl) {
+    imageSrc.value = newUrl
     cropperKey.value++
   }
-  // 移除 else if (!isOpen) 部分，子组件不再负责关闭时的清理工作
+})
+
+watch(() => props.open, (isOpen) => {
+  if (isOpen && props.initialImageUrl && !imageSrc.value) {
+    // 仅在模态框首次打开时设置 imageSrc
+    imageSrc.value = props.initialImageUrl
+    cropperKey.value++
+  } else if (!isOpen) {
+    // 当模态框关闭时，清理内部的 imageSrc
+    imageSrc.value = null
+  }
 })
 </script>
 
@@ -191,8 +181,7 @@ watch(() => props.open, (isOpen) => {
           {{ isLoading ? '保存中...' : '保存' }}
         </Button>
       </DialogFooter>
-
-      <input ref="fileInputRef" type="file" class="hidden" accept="image/png, image/jpeg" @change="onFileChange">
+      
     </DialogContent>
   </Dialog>
 </template>

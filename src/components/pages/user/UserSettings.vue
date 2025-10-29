@@ -106,7 +106,9 @@ function onInitialFileSelect(event: Event) {
   }
 
   initialImageForModal.value = URL.createObjectURL(file)
-  isCropperModalOpen.value = true
+  if (!isCropperModalOpen.value) {
+    isCropperModalOpen.value = true
+  }
 
   // Reset the input value to allow selecting the same file again
   target.value = ''
@@ -324,6 +326,7 @@ async function handleUpdatePassword() {
       v-model:open="isCropperModalOpen"
       :initial-image-url="initialImageForModal"
       @success="onAvatarUploadSuccess"
+      @request-new-file="handleAvatarClick"
     />
     <input
       ref="avatarFileInput"
