@@ -10,17 +10,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Camera } from 'lucide-vue-next'
-import AvatarCropperModal from './AvatarCropperModal.vue'
+import AvatarCropperModal from '@/components/pages/user/AvatarCropperModal.vue'
 
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
 
 // --- Refs for data binding ---
 const isCropperModalOpen = ref(false)
+
 const initialImageForModal = ref<string | null>(null)
 const avatarFileInput = ref<HTMLInputElement | null>(null) 
 const localPreview = ref<string | null>(null);
 const avatarPreview = computed(() => localPreview.value || userStore.userAvatar || '/avatars/shadcn.jpg')
+
 const newUsername = ref('')
 const newEmail = ref('')
 const emailVerificationCode = ref('')
@@ -46,7 +48,7 @@ const sendCodeButtonText = computed(() => {
   return 'Send Code'
 })
 
-// --- Validation functions ---
+// --- Watchers ---
 watch(newUsername, (value) => {
   newUsernameError.value = value ? '' : 'Username cannot be empty.'
 })
@@ -99,6 +101,14 @@ function onInitialFileSelect(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
+
+  // validate file avatar file size
+  const MAX_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+  if (file.size > MAX_SIZE) {
+    notificationStore.showNotification('File size cannot exceed 2MB.', 'error');
+    target.value = ''; // 清空输入，以便用户可以重新选择
+    return;
+  }
 
   // Revoke previous URL if it exists
   if (initialImageForModal.value) {
