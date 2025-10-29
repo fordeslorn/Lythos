@@ -11,12 +11,14 @@ import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Camera } from 'lucide-vue-next'
 import AvatarCropperModal from '@/components/pages/user/AvatarCropperModal.vue'
+import CaptchaModal from '@/components/auth/CaptchaModal.vue'
 
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
 
 // --- Refs for data binding ---
 const isCropperModalOpen = ref(false)
+const isCaptchaOpen = ref(false)
 
 const initialImageForModal = ref<string | null>(null)
 const avatarFileInput = ref<HTMLInputElement | null>(null) 
@@ -138,6 +140,7 @@ function onAvatarUploadSuccess() {
 async function handleUpdateUsername() {
   if (!newUsername.value) {
     newUsernameError.value = 'Username cannot be empty.'
+    notificationStore.showNotification('Username cannot be empty.', 'error')
     return
   }
   try {
@@ -163,9 +166,20 @@ async function handleSendCode() {
   }
   if (isSendingCode.value || countdown.value > 0) return
 
+  // 打开验证码模态框
+  isCaptchaOpen.value = true
+}
+
+// onEmailCaptchaSuccess 处理验证成功后的逻辑
+async function onCaptchaSuccess(captchaCode: string) {
+  isCaptchaOpen.value = false // 关闭验证码模态框
   isSendingCode.value = true
   try {
-    await apiClient.post('/user/send-email-code', { email: newEmail.value })
+    // 将 captchaCode 与 email 一同发送
+    await apiClient.post('/user/send-email-code', { 
+      email: newEmail.value,
+      captchaCode: captchaCode 
+    })
     notificationStore.showNotification('Verification code sent to your new email!', 'success')
     countdown.value = 60
     const interval = setInterval(() => {
@@ -222,6 +236,8 @@ async function handleUpdatePassword() {
   } catch (error: any) {
     const msg = error.response?.data?.message || 'Failed to update password.'
     notificationStore.showNotification(msg, 'error')
+    oldPassword.value = ''
+    newPassword.value = ''
   }
 }
 </script>
@@ -338,6 +354,7 @@ async function handleUpdatePassword() {
       @success="onAvatarUploadSuccess"
       @request-new-file="handleAvatarClick"
     />
+    <CaptchaModal class="bg-white text-gray-900 border border-gray-200" v-model:open="isCaptchaOpen" @success="onCaptchaSuccess" />
     <input
       ref="avatarFileInput"
       type="file"
