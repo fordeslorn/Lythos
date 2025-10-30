@@ -86,16 +86,16 @@ const isEmailUpdateDisabled = computed(() => {
 async function fetchRateLimits() {
   try {
     const response = await apiClient.get('/user/rate-limits')
-    console.log('Rate limits response:', response.data) // [新增] 调试日志
+    console.log('Rate limits response:', response.data) 
     if (response.data.success) {
       rateLimits.value = response.data.limits
-      console.log('Rate limits set:', rateLimits.value) // [新增] 确认数据设置
+      console.log('Rate limits set:', rateLimits.value) 
     } else {
       console.error('API returned success=false')
     }
   } catch (error: any) {
     console.error('Failed to fetch rate limits:', error)
-    console.error('Error details:', error.response?.data) // [新增] 详细错误信息
+    console.error('Error details:', error.response?.data) 
     notificationStore.showNotification('Could not load update limits.', 'error')
   }
 }
@@ -107,7 +107,14 @@ onMounted(() => {
 
 // --- Watchers ---
 watch(newUsername, (value) => {
-  newUsernameError.value = value ? '' : 'Username cannot be empty.'
+  if (!value) {
+    newUsernameError.value = 'Username cannot be empty.'
+  } else if (value.length > 20) {
+    // 检查长度
+    newUsernameError.value = 'Username cannot exceed 20 characters.'
+  } else {
+    newUsernameError.value = ''
+  }
 })
 watch(newEmail, (value) => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
