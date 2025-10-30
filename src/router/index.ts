@@ -40,7 +40,7 @@ const router = createRouter({
       path: '/auth/forgot',
       name: 'forgot-password',
       component: ForgotPassword,
-      meta: { guestOnly: true }
+      // meta: { guestOnly: true }
     },
     {
       path: '/',

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 import { useNotificationStore } from '@/stores/notification'
 import apiClient from '@/api'
 
@@ -9,11 +10,24 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Camera } from 'lucide-vue-next'
+import { Camera, ExternalLink } from 'lucide-vue-next'
 import AvatarCropperModal from '@/components/pages/user/AvatarCropperModal.vue'
 import CaptchaModal from '@/components/auth/CaptchaModal.vue'
 
+// 定义从后端获取的速率限制数据类型
+interface RateLimitStatus {
+  count: number
+  limit: number
+  resetsAt: string | null // JSON 会将日期序列化为字符串
+}
+interface RateLimits {
+  username: RateLimitStatus
+  email: RateLimitStatus
+  avatar: RateLimitStatus
+}
+
 const userStore = useUserStore()
+const router = useRouter()
 const notificationStore = useNotificationStore()
 
 // --- Refs for data binding ---
@@ -30,6 +44,7 @@ const newEmail = ref('')
 const emailVerificationCode = ref('')
 const oldPassword = ref('')
 const newPassword = ref('')
+const rateLimits = ref<RateLimits | null>(null)// 存储速率限制数据
 
 // --- Refs for UI state ---
 const isSendingCode = ref(false)
@@ -48,6 +63,46 @@ const sendCodeButtonText = computed(() => {
     return `${countdown.value}s`
   }
   return 'Send Code'
+})
+// 判断是否达到限制
+const isAvatarUpdateDisabled = computed(() => {
+  if (!rateLimits.value) return false // 如果数据还没加载，暂时不禁用
+  const avatarLimit = rateLimits.value.avatar
+  return avatarLimit.count >= avatarLimit.limit
+})
+const isUsernameUpdateDisabled = computed(() => {
+  if (!rateLimits.value) return false
+  const usernameLimit = rateLimits.value.username
+  return usernameLimit.count >= usernameLimit.limit
+})
+const isEmailUpdateDisabled = computed(() => {
+  if (!rateLimits.value) return false
+  const emailLimit = rateLimits.value.email
+  return emailLimit.count >= emailLimit.limit
+})
+
+// --- Methods ---
+// 获取速率限制数据
+async function fetchRateLimits() {
+  try {
+    const response = await apiClient.get('/user/rate-limits')
+    console.log('Rate limits response:', response.data) // [新增] 调试日志
+    if (response.data.success) {
+      rateLimits.value = response.data.limits
+      console.log('Rate limits set:', rateLimits.value) // [新增] 确认数据设置
+    } else {
+      console.error('API returned success=false')
+    }
+  } catch (error: any) {
+    console.error('Failed to fetch rate limits:', error)
+    console.error('Error details:', error.response?.data) // [新增] 详细错误信息
+    notificationStore.showNotification('Could not load update limits.', 'error')
+  }
+}
+
+// 在组件挂载时调用获取函数
+onMounted(() => {
+  fetchRateLimits()
 })
 
 // --- Watchers ---
@@ -96,6 +151,10 @@ watch(isCropperModalOpen, (isOpen) => {
 // Avatar
 // click the hidden file input
 function handleAvatarClick() {
+   if (isAvatarUpdateDisabled.value) {
+    notificationStore.showNotification('You have reached the monthly avatar update limit.', 'error')
+    return
+  }
   avatarFileInput.value?.click()
 }
 // handle the file selection from the new hidden input
@@ -132,7 +191,8 @@ function onAvatarUploadSuccess() {
     URL.revokeObjectURL(initialImageForModal.value)
     initialImageForModal.value = null
   }
-
+  // 更新成功后，重新获取次数限制
+  fetchRateLimits()
   console.log('Avatar upload successful, modal closed from parent.')
 }
 
@@ -153,6 +213,8 @@ async function handleUpdateUsername() {
     })
     notificationStore.showNotification('Username updated successfully!', 'success')
     newUsername.value = ''
+    // 更新成功后，重新获取次数限制
+    fetchRateLimits()
   } catch (error) {
     notificationStore.showNotification('Failed to update username.', 'error')
   }
@@ -213,6 +275,8 @@ async function handleUpdateEmail() {
     notificationStore.showNotification('Email updated successfully!', 'success')
     newEmail.value = ''
     emailVerificationCode.value = ''
+    // 更新成功后，重新获取次数限制
+    fetchRateLimits()
   } catch (error: any) {
     const msg = error.response?.data?.message || 'Failed to update email.'
     notificationStore.showNotification(msg, 'error')
@@ -268,7 +332,15 @@ async function handleUpdatePassword() {
           </div>
         </CardHeader>
         <CardFooter class="px-6 py-4 text-sm text-gray-500">
-          Only JPG and PNG images are allowed. Maximum file size: 2MB.
+        <div>
+            Only JPG and PNG images are allowed. Maximum file size: 2MB.
+          <div v-if="rateLimits" class="mt-1 text-sm text-gray-600">
+            Updates this month: {{ rateLimits.avatar.count }} / {{ rateLimits.avatar.limit }}
+            <span v-if="rateLimits.avatar.resetsAt">
+              (Resets on {{ new Date(rateLimits.avatar.resetsAt).toLocaleDateString() }})
+            </span>
+          </div>
+        </div>
         </CardFooter>
       </Card>
 
@@ -287,8 +359,14 @@ async function handleUpdatePassword() {
             <p v-if="newUsernameError" class="text-sm text-red-400">{{ newUsernameError }}</p>
           </div>
         </CardContent>
-        <CardFooter class="px-6 py-4 flex justify-end">
-          <Button @click="handleUpdateUsername">Save</Button>
+        <CardFooter class="px-6 py-4 flex justify-between items-center">
+           <div v-if="rateLimits" class="text-sm text-gray-600">
+            Updates this month: {{ rateLimits.username.count }} / {{ rateLimits.username.limit }}
+            <span v-if="rateLimits.username.resetsAt">
+              (Resets on {{ new Date(rateLimits.username.resetsAt).toLocaleDateString() }})
+            </span>
+          </div>
+          <Button @click="handleUpdateUsername" :disabled="isUsernameUpdateDisabled">Save</Button>
         </CardFooter>
       </Card>
 
@@ -317,8 +395,14 @@ async function handleUpdatePassword() {
             <p v-if="emailVerificationCodeError" class="text-sm text-red-400">{{ emailVerificationCodeError }}</p>
           </div>
         </CardContent>
-        <CardFooter class="px-6 py-4 flex justify-end">
-          <Button @click="handleUpdateEmail">Save</Button>
+        <CardFooter class="px-6 py-4 flex justify-between items-center">
+          <div v-if="rateLimits" class="text-sm text-gray-600">
+            Updates this month: {{ rateLimits.email.count }} / {{ rateLimits.email.limit }}
+            <span v-if="rateLimits.email.resetsAt">
+              (Resets on {{ new Date(rateLimits.email.resetsAt).toLocaleDateString() }})
+            </span>
+          </div>
+          <Button @click="handleUpdateEmail" :disabled="isEmailUpdateDisabled">Save</Button>
         </CardFooter>
       </Card>
 
@@ -342,7 +426,10 @@ async function handleUpdatePassword() {
             <p v-if="newPasswordError" class="text-sm text-red-400">{{ newPasswordError }}</p>
           </div>
         </CardContent>
-        <CardFooter class="px-6 py-4 flex justify-end">
+        <CardFooter class="px-6 py-4 flex justify-between items-center">
+          <Button variant="link" @click="router.push('/auth/forgot')" class="flex items-center gap-1">
+            Forgot Password? <ExternalLink class="w-4 h-4" />
+          </Button>
           <Button @click="handleUpdatePassword">Save</Button>
         </CardFooter>
       </Card>
