@@ -89,6 +89,7 @@ async function onCaptchaSuccess(code: string) {
       id: response.data.user.id,
       name: response.data.user.username,
       email: response.data.user.email,
+      avatar: response.data.user.avatarUrl,
     };
 
     // 将后端返回的用户信息存入 Pinia 全局状态

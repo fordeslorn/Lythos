@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import apiClient from '@/api' 
 import { useNotificationStore } from '@/stores/notification'
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +14,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
+defineOptions({
+  inheritAttrs: false
+})
 
 // --- 1. 定义数据类型 ---
 // 定义从后端获取的图片数据类型
@@ -132,7 +136,12 @@ watch(
 
 <template>
   <Dialog :open="open" @update:open="handleClose">
-    <DialogContent class="sm:max-w-[466px] bg-zinc-900 text-white border border-white/20 rounded-2xl shadow-lg">
+    <DialogContent 
+      :class="cn(
+        'sm:max-w-[466px] bg-zinc-900 text-white border border-white/20 rounded-2xl shadow-lg',
+        $attrs.class ?? ''
+      )"
+    >
       <DialogHeader>
         <DialogTitle>人机验证</DialogTitle>
         <DialogDescription>
