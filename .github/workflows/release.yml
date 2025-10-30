@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 检出代码 (Checkout code)
+        uses: actions/checkout@v4
+
+      - name: 2. Get tag information
+        if: startsWith(github.ref, 'refs/tags/')
+        id: tag_info
+        run: |
+          # 获取标签名
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          
+          # 尝试提取标签消息 
+          TAG_MESSAGE=$(
+          git cat-file -p $TAG_NAME 2>/dev/null |
+          awk '
+          /^(object|type|tag|tagger) / { next }
+          !p && /^$/ { p=1; next }
+          p { print }
+          ' |
+          sed -e '/^\s*$/d'
+          )
+          
+          # 如果是轻量标签，设置默认消息
+          if [ -z "$TAG_MESSAGE" ]; then
+            echo "::warning::Tag $TAG_NAME is a lightweight tag or extraction failed. Using default message."
+            TAG_MESSAGE="Release $TAG_NAME - 仅包含前端部署文件包。"
+          fi
+          
+          # 设置 GitHub Action 输出变量 - Tag Message
+          echo "tag_message<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # 设置 Release Body
+          echo "release_body<<EOF" >> $GITHUB_OUTPUT
+          echo "**前端 Release $TAG_NAME**" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "---" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: 3. Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.tag_info.outputs.tag_name }} # Release 名字就是标签名
+          body: | 
+            ${{ steps.tag_info.outputs.release_body }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
