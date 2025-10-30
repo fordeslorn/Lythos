@@ -11,13 +11,15 @@ Used the `shadcn-vue` UI.
 ![](docs/img/login.png)
 **Register**
 ![](docs/img/register.png)
+**User Settings**
+![](docs/img/user-settings.png)
 
 ## Project Setup
 
 **Install dependencies:**
-Install the required dependencies using npm:
+Install the required dependencies using pnpm:
 ```sh
-npm install
+pnpm install
 ```
 **Environment Variables:**
 
@@ -34,13 +36,13 @@ VITE_MOCK_LOGGED_IN=false
 **Compile and Hot-Reload for Development:**
 
 ```sh
-npm run dev
+pnpm run dev
 ```
 
 **Type-Check, Compile and Minify for Production:**
 
 ```sh
-npm run build
+pnpm run build
 ```
 
 ## Deploy in server
