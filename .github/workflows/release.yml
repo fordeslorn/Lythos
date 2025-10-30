@@ -45,9 +45,7 @@ jobs:
           
           # 设置 Release Body
           echo "release_body<<EOF" >> $GITHUB_OUTPUT
-          echo "**前端 Release $TAG_NAME**" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "---" >> $GITHUB_OUTPUT
+          echo "**Release $TAG_NAME**" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
