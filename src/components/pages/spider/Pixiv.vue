@@ -1,5 +1,7 @@
 、<script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
+import apiClient from '@/api'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,46 +12,97 @@ import { Textarea } from '@/components/ui/textarea'
 const cookie = ref('')
 const userId = ref('')
 const isLoading = ref(false)
-
-// 模拟爬取到的用户信息
-const userInfo = ref<{ name: string; id: string; avatar: string } | null>(null)
-
+const isRunning = ref(false)
 // --- 右侧结果区的状态 ---
 const logs = ref('Spider logs will appear here...\n')
-const crawledImages = ref<string[]>([]) // 存储爬取到的图片 URL
+const crawledImages = ref<string[]>([])
+// 爬取到的用户信息
+const pixivUserInfo = ref<{ name: string; id: string; avatar: string } | null>(null)
+
+let pollInterval: number | null = null
+
+// 清理轮询，防止内存泄漏
+onUnmounted(() => {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+  }
+})
 
 // --- 事件处理 ---
-function handleStartCrawling() {
+async function pollStatus(taskId: string) {
+  pollInterval = window.setInterval(async () => {
+    try {
+      const response = await apiClient.get(`/spider/pixiv/status/${taskId}`)
+      const data = response.data
+
+      // 更新日志和图片 (这里假设 FastAPI 返回的格式)
+      // 您需要根据 FastAPI 的真实返回来调整
+      if (data.logs) {
+        logs.value = data.logs.join('\n')
+      }
+      if (data.images) {
+        crawledImages.value = data.images
+      }
+
+      if (data.status === 'completed' || data.status === 'failed') {
+        if (pollInterval) clearInterval(pollInterval)
+        isRunning.value = false
+        isLoading.value = false
+        logs.value += `\n[INFO] Task finished with status: ${data.status}`
+      }
+    } catch (error) {
+      console.error('Polling failed:', error)
+      if (pollInterval) clearInterval(pollInterval)
+      isRunning.value = false
+      isLoading.value = false
+      logs.value += '\n[ERROR] Failed to get task status.'
+    }
+  }, 3000) // 每 3 秒查询一次
+}
+// 开始爬取
+async function handleStartCrawling() {
   if (!cookie.value || !userId.value) {
     logs.value += '[ERROR] Cookie and User ID cannot be empty.\n'
     return
   }
-  
-  isLoading.value = true
-  logs.value = `[INFO] Starting crawl for user ID: ${userId.value}\n`
-  
-  // 模拟 API 调用和爬取过程
-  setTimeout(() => {
-    logs.value += '[INFO] Successfully logged in with cookie.\n'
-    logs.value += '[INFO] Fetching user information...\n'
-    
-    // 模拟获取到用户信息
-    userInfo.value = {
-      name: 'Mock User',
-      id: userId.value,
-      avatar: 'https://via.placeholder.com/96' // 使用占位图
-    }
-    logs.value += `[SUCCESS] User found: ${userInfo.value.name}\n`
-    logs.value += '[INFO] Starting to crawl images...\n'
 
-    // 模拟爬取图片
-    const mockImages = Array.from({ length: 12 }, (_, i) => `https://via.placeholder.com/300x200?text=Image+${i + 1}`)
-    crawledImages.value = mockImages
-    
-    logs.value += `[SUCCESS] Crawled ${mockImages.length} images.\n`
-    logs.value += '[INFO] Crawl finished.\n'
+  isLoading.value = true
+  isRunning.value = true
+  logs.value = `[INFO] Sending request to start crawl for user ID: ${userId.value}\n`
+  crawledImages.value = []
+  pixivUserInfo.value = null
+
+  try {
+    // 调用 Gin 后端的启动接口
+    const response = await apiClient.post('/spider/pixiv/start', {
+      user_id: userId.value,
+      cookie: cookie.value
+    })
+
+    if (response.data.task_id) {
+      logs.value += `[SUCCESS] Task started with ID: ${response.data.task_id}\n`
+      // 开始轮询状态
+      pollStatus(response.data.task_id)
+    } else {
+      throw new Error('Failed to get task ID from server.')
+    }
+  } catch (error) {
+    console.error('Failed to start crawl:', error)
+    logs.value += '[ERROR] Failed to start the crawl task.\n'
     isLoading.value = false
-  }, 2000)
+    isRunning.value = false
+  }
+}
+// 停止爬取
+function handleStopCrawling() {
+  // 停止轮询
+  if (pollInterval) {
+    clearInterval(pollInterval)
+  }
+  isRunning.value = false
+  isLoading.value = false
+  logs.value += '[INFO] Crawl stopped by user.\n'
+  // 您还可以向后端发送一个停止任务的请求
 }
 </script>
 
@@ -73,22 +126,37 @@ function handleStartCrawling() {
               <Label for="user-id">User ID</Label>
               <Input id="user-id" v-model="userId" placeholder="Enter the user ID to crawl" />
             </div>
-            <Button @click="handleStartCrawling" :disabled="isLoading" class="w-full">
-              {{ isLoading ? 'Crawling...' : 'Start Crawling' }}
-            </Button>
+            <div>
+              <Button
+                v-if="!isRunning"
+                @click="handleStartCrawling"
+                :disabled="isLoading"
+                class="w-full"
+              >
+                {{ isLoading ? 'Crawling...' : 'Start Crawling' }}
+              </Button>
+              <Button
+                v-else
+                variant="destructive"
+                @click="handleStopCrawling"
+                class="w-full"
+              >
+                Stop Crawling
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
         <!-- 爬取到的用户信息卡片 -->
-        <Card v-if="userInfo">
+        <Card v-if="pixivUserInfo">
           <CardHeader>
             <CardTitle>User Information</CardTitle>
           </CardHeader>
           <CardContent class="flex items-center gap-4">
-            <img :src="userInfo.avatar" alt="User Avatar" class="w-24 h-24 rounded-full border" />
+            <img :src="pixivUserInfo.avatar" alt="User Avatar" class="w-24 h-24 rounded-full border" />
             <div>
-              <p class="font-bold text-lg">{{ userInfo.name }}</p>
-              <p class="text-sm text-gray-500">ID: {{ userInfo.id }}</p>
+              <p class="font-bold text-lg">{{ pixivUserInfo.name }}</p>
+              <p class="text-sm text-gray-500">ID: {{ pixivUserInfo.id }}</p>
             </div>
           </CardContent>
         </Card>
@@ -97,13 +165,12 @@ function handleStartCrawling() {
       <!-- 右侧：数据显示区 -->
       <div class="lg:col-span-2 flex flex-col gap-6">
         <!-- 爬虫日志框 -->
-        <div class="flex-shrink-0">
-          <Label for="logs">Spider Logs</Label>
+        <div class="border rounded-lg p-4 flex-shrink-0">
+          <h3 class="font-semibold mb-4">Logs</h3>
           <Textarea id="logs" v-model="logs" readonly class="h-48 font-mono text-xs bg-zinc-900 text-gray-300" />
         </div>
-
         <!-- 爬取到的图片预览 -->
-        <div class="flex-grow border rounded-lg p-4">
+         <div class="border rounded-lg p-4 overflow-y-auto max-h-82">
           <h3 class="font-semibold mb-4">Crawled Images</h3>
           <div v-if="crawledImages.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <div v-for="(img, index) in crawledImages" :key="index" class="aspect-video bg-gray-200 rounded overflow-hidden">
@@ -115,6 +182,7 @@ function handleStartCrawling() {
           </div>
         </div>
       </div>
+      
     </div>
   </div>
 </template>
