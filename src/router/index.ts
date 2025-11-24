@@ -16,7 +16,7 @@ import Billing from '@/components/pages/settings/Billing.vue'
 import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 import SpidersPage from '@/components/pages/spider/SpidersPage.vue'
 import NcMusic from '@/components/pages/spider/NcMusic.vue'
-import Pixiv from '@/components/pages/spider/pixiv.vue'
+import Pixiv from '@/components/pages/spider/Pixiv.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
