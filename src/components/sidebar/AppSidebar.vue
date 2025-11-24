@@ -8,6 +8,7 @@ import {
   Settings2,
   Snowflake,
   Package,
+  Rocket
 } from "lucide-vue-next"
 
 import NavMain from '@/components/sidebar/NavMain.vue'
@@ -39,6 +40,15 @@ const data = computed(() => ({
       title: "Resource",
       url: "/resource",
       icon: Package,
+    },
+    {
+      title: "Spider",
+      url: "/spider",
+      icon: Rocket,
+      items: [
+        { title: "Pixiv", url: "/spider/pixiv" },
+        { title: "NcMusic", url: "/spider/nc-music" },
+      ],
     },
     {
       title: "Settings",

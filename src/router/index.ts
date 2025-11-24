@@ -14,6 +14,9 @@ import Resource from '@/components/pages/resource/Resource.vue'
 import General from '@/components/pages/settings/General.vue'
 import Billing from '@/components/pages/settings/Billing.vue'
 import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
+import SpidersPage from '@/components/pages/spider/SpidersPage.vue'
+import NcMusic from '@/components/pages/spider/NcMusic.vue'
+import Pixiv from '@/components/pages/spider/pixiv.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -56,6 +59,14 @@ const router = createRouter({
           path: 'resource',
           name: 'resource',
           component: Resource
+        },
+        {
+          path: 'spider',
+          children: [
+            { path: '', name: 'spiders', component: SpidersPage },  
+            { path: 'nc-music', name: 'spiders-nc-music', component: NcMusic },  
+            { path: 'pixiv', name: 'spiders-pixiv', component: Pixiv },  
+          ]
         },
         {
           path: 'settings',
