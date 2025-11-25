@@ -47,14 +47,14 @@ defineProps<{
         >
           <SidebarMenuItem>
             <div class="flex items-center">
-              <SidebarMenuButton as-child :tooltip="item.title" class="flex-1 rounded-r-none">
+              <SidebarMenuButton as-child :tooltip="item.title" class="flex-1 rounded-r-none group-data-[collapsible=icon]:rounded-r-md">
                 <RouterLink :to="item.url">
                   <component :is="item.icon" v-if="item.icon" />
                   <span>{{ item.title }}</span>
                 </RouterLink>
               </SidebarMenuButton>
               <CollapsibleTrigger as-child>
-                <SidebarMenuButton class="w-8 rounded-l-none p-0 justify-center">
+                <SidebarMenuButton class="w-8 rounded-l-none p-0 justify-center group-data-[collapsible=icon]:hidden">
                   <ChevronRight class="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
