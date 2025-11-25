@@ -1,5 +1,5 @@
 、<script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, onMounted, watch } from 'vue'
 import apiClient from '@/api'
 
 import { Button } from '@/components/ui/button'
@@ -28,20 +28,98 @@ onUnmounted(() => {
   }
 })
 
+// --- 持久化存储 ---
+onMounted(() => {
+  const savedCookie = localStorage.getItem('pixiv_cookie')
+  if (savedCookie) cookie.value = savedCookie
+  
+  const savedUserId = localStorage.getItem('pixiv_target_user_id')
+  if (savedUserId) userId.value = savedUserId
+})
+
+watch(cookie, (newVal) => {
+  localStorage.setItem('pixiv_cookie', newVal)
+})
+
+watch(userId, (newVal) => {
+  localStorage.setItem('pixiv_target_user_id', newVal)
+})
+
 // --- 事件处理 ---
+
+// 获取用户头像
+async function fetchUserAvatar(userId: string) {
+  try {
+    const response = await apiClient.get(`/crawler/avatars/${userId}`, {
+      responseType: 'blob'
+    })
+    const url = URL.createObjectURL(response.data)
+    if (pixivUserInfo.value) {
+      pixivUserInfo.value.avatar = url
+    }
+  } catch (error) {
+    console.error('Failed to fetch avatar:', error)
+  }
+}
+
 async function pollStatus(taskId: string) {
   pollInterval = window.setInterval(async () => {
     try {
-      const response = await apiClient.get(`/spider/pixiv/status/${taskId}`)
+      const response = await apiClient.get(`/crawler/status/${taskId}`)
       const data = response.data
 
-      // 更新日志和图片 (这里假设 FastAPI 返回的格式)
-      // 您需要根据 FastAPI 的真实返回来调整
-      if (data.logs) {
+      // 更新日志
+      if (data.logs && Array.isArray(data.logs)) {
         logs.value = data.logs.join('\n')
       }
-      if (data.images) {
-        crawledImages.value = data.images
+
+      // 更新进度信息
+      if (data.total_images !== undefined && data.downloaded_images !== undefined) {
+         // 可以在日志末尾追加进度，或者单独显示
+         // logs.value += `\n[PROGRESS] Downloaded: ${data.downloaded_images} / ${data.total_images}`
+      }
+      
+      // 如果后端返回了图片列表
+      if (data.images && Array.isArray(data.images)) {
+        console.log('Images received:', data.images)
+        // 获取每个图片的 blob URL 通过后端代理
+        crawledImages.value = await Promise.all(
+          data.images.map(async (img: any) => {
+            try {
+              // 从 path 中提取文件名
+              const filename = img.path.split('\\').pop() || img.path.split('/').pop()
+              // 使用新的后端代理接口: /crawler/images/:pixiv_user_id/:filename
+              // 注意：这里假设 userId.value 是当前正在爬取的 pixiv_user_id
+              // 如果在轮询过程中 userId 发生了变化（例如用户在输入框改了值），可能会有问题
+              // 更稳健的做法是后端在 images 列表中返回 pixiv_user_id，或者我们从 pixivUserInfo 中获取
+              const currentUserId = pixivUserInfo.value?.id || userId.value
+              
+              const response = await apiClient.get(`/crawler/images/${currentUserId}/${filename}`, {
+                responseType: 'blob'
+              })
+              const blob = response.data
+              return URL.createObjectURL(blob)
+            } catch (error) {
+              console.error('Failed to fetch image blob:', error)
+              return '' // 返回空字符串作为占位符
+            }
+          })
+        )
+      }
+
+      // 如果轮询过程中返回了用户信息（可能是异步获取的）
+      if (data.user_info && !pixivUserInfo.value) {
+        console.log('User info received:', data.user_info)
+        // 尝试兼容不同的 ID 字段名
+        const uid = data.user_info.id || data.user_info.user_id || data.user_info.uid || ''
+        
+        pixivUserInfo.value = {
+          name: data.user_info.name,
+          id: uid,
+          avatar: '' // 先置空，稍后获取
+        }
+        // 获取头像
+        if (uid) fetchUserAvatar(uid)
       }
 
       if (data.status === 'completed' || data.status === 'failed') {
@@ -59,6 +137,7 @@ async function pollStatus(taskId: string) {
     }
   }, 3000) // 每 3 秒查询一次
 }
+
 // 开始爬取
 async function handleStartCrawling() {
   if (!cookie.value || !userId.value) {
@@ -73,16 +152,32 @@ async function handleStartCrawling() {
   pixivUserInfo.value = null
 
   try {
-    // 调用 Gin 后端的启动接口
-    const response = await apiClient.post('/spider/pixiv/start', {
-      user_id: userId.value,
+    // 调用 Gin 后端的启动接口: POST /crawler/start/image
+    const response = await apiClient.post('/crawler/start/image', {
+      pixiv_user_id: userId.value,
       cookie: cookie.value
     })
 
-    if (response.data.task_id) {
-      logs.value += `[SUCCESS] Task started with ID: ${response.data.task_id}\n`
+    const data = response.data
+    if (data.task_id) {
+      logs.value += `[SUCCESS] Task started with ID: ${data.task_id}\n`
+      
+      // 如果返回了用户信息，立即显示
+      if (data.user_info) {
+        console.log('Start user info:', data.user_info)
+        const uid = data.user_info.user_id
+        
+        pixivUserInfo.value = {
+          name: data.user_info.name,
+          id: uid,
+          avatar: '' // 先置空，稍后获取
+        }
+        // 获取头像
+        if (uid) fetchUserAvatar(uid)
+      }
+
       // 开始轮询状态
-      pollStatus(response.data.task_id)
+      pollStatus(data.task_id)
     } else {
       throw new Error('Failed to get task ID from server.')
     }
