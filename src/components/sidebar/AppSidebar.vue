@@ -8,7 +8,8 @@ import {
   Settings2,
   Snowflake,
   Package,
-  Rocket
+  Rocket,
+  BookOpen
 } from "lucide-vue-next"
 
 import NavMain from '@/components/sidebar/NavMain.vue'
@@ -21,6 +22,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarSeparator,
 } from '@/components/ui/sidebar'
 
 const props = withDefaults(defineProps<SidebarProps>(), {
@@ -50,6 +52,17 @@ const data = computed(() => ({
         { title: "NcMusic", url: "/spider/nc-music" },
       ],
     },
+  ],
+  navSecondary: [
+    {
+      title: "Document",
+      url: "/docs",
+      icon: BookOpen,
+      items: [
+        { title: "Introduction", url: "/docs/introduction" },
+        { title: "Spider", url: "/docs/spider" },
+      ],
+    },
     {
       title: "Settings",
       url: "/settings",
@@ -59,18 +72,20 @@ const data = computed(() => ({
         { title: "Billing", url: "/settings/billing" },
       ],
     },
-  ],
+  ]
 }))
 </script>
 
 <template>
-  <Sidebar v-bind="props">
+  <Sidebar v-bind="props" class="overflow-hidden">
     <SidebarHeader>
       <SidebarBrand :icon="Snowflake" title="Vue System" />
     </SidebarHeader>
 
-    <SidebarContent>
-      <NavMain :items="data.navMain" />
+    <SidebarContent class="flex-1">
+      <NavMain :items="data.navMain" label="Platform" />
+      <SidebarSeparator class="!w-6/7   !ml-4" />
+      <NavMain :items="data.navSecondary" label="Support" />
     </SidebarContent>
 
     <SidebarFooter>

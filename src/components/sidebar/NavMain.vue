@@ -28,13 +28,14 @@ defineProps<{
       title: string
       url: string
     }[]
-  }[]
+  }[],
+  label?: string
 }>()
 </script>
 
 <template>
   <SidebarGroup>
-    <SidebarGroupLabel>Platform</SidebarGroupLabel>
+    <SidebarGroupLabel v-if="label">{{ label }}</SidebarGroupLabel>
     <SidebarMenu>
       <template v-for="item in items" :key="item.title">
         <!-- Item with sub-items -->

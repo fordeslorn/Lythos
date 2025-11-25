@@ -215,7 +215,12 @@ function handleStopCrawling() {
           <CardContent class="space-y-4">
             <div class="space-y-2">
               <Label for="cookie">Cookie</Label>
-              <Textarea id="cookie" v-model="cookie" placeholder="Enter your Pixiv cookie" />
+              <Textarea 
+                id="cookie" 
+                v-model="cookie" 
+                placeholder="Enter your Pixiv cookie" 
+                class="h-24 resize-none overflow-y-auto"
+              />
             </div>
             <div class="space-y-2">
               <Label for="user-id">User ID</Label>
@@ -266,7 +271,7 @@ function handleStopCrawling() {
         </div>
         <!-- 爬取到的图片预览 -->
          <div class="border rounded-lg p-4 overflow-y-auto max-h-82">
-          <h3 class="font-semibold mb-4">Crawled Images</h3>
+          <h3 class="font-semibold mb-4">Crawled Images Preview</h3>
           <div v-if="crawledImages.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <div v-for="(img, index) in crawledImages" :key="index" class="aspect-video bg-gray-200 rounded overflow-hidden">
               <img :src="img" alt="Crawled Image" class="w-full h-full object-cover" />

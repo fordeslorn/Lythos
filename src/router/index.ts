@@ -17,6 +17,9 @@ import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 import SpidersPage from '@/components/pages/spider/SpidersPage.vue'
 import NcMusic from '@/components/pages/spider/NcMusic.vue'
 import Pixiv from '@/components/pages/spider/Pixiv.vue'
+import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
+import IntroductionDocs from '@/components/pages/docs/IntroductionDocs.vue'
+import DocsPage from '@/components/pages/docs/DocsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -66,6 +69,14 @@ const router = createRouter({
             { path: '', name: 'spiders', component: SpidersPage },  
             { path: 'nc-music', name: 'spiders-nc-music', component: NcMusic },  
             { path: 'pixiv', name: 'spiders-pixiv', component: Pixiv },  
+          ]
+        },
+        {
+          path: 'docs',
+          children: [
+            { path: 'spider', name: 'docs-spider', component: SpiderDocs },
+            { path: 'introduction', name: 'docs-introduction', component: IntroductionDocs },
+            { path: '', name: 'docs', component: DocsPage },
           ]
         },
         {
