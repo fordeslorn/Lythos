@@ -90,6 +90,7 @@ const router = createRouter({
         {
           path: 'user',
           children: [
+            { path: '', redirect: '/user/account' }, // 重定向到 account 页面
             { path: 'account', name: 'user-account', component: Account },
             { path: 'settings', name: 'user-settings', component: UserSettings },
             { path: 'notifications', name: 'user-notifications', component: Notifications },
