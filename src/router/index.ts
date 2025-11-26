@@ -17,9 +17,8 @@ import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 import SpidersPage from '@/components/pages/spider/SpidersPage.vue'
 import NcMusic from '@/components/pages/spider/NcMusic.vue'
 import Pixiv from '@/components/pages/spider/Pixiv.vue'
-import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
-import IntroductionDocs from '@/components/pages/docs/IntroductionDocs.vue'
 import DocsPage from '@/components/pages/docs/DocsPage.vue'
+import MarkdownViewer from '@/components/pages/docs/MarkdownViewer.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -74,8 +73,18 @@ const router = createRouter({
         {
           path: 'docs',
           children: [
-            { path: 'spider', name: 'docs-spider', component: SpiderDocs },
-            { path: 'introduction', name: 'docs-introduction', component: IntroductionDocs },
+            { 
+              path: 'spider', 
+              name: 'docs-spider', 
+              component: MarkdownViewer,
+              props: { fileNames: ['spider-pixiv', 'spider-ncmusic'], gap: '2rem' }
+            },
+            { 
+              path: 'introduction', 
+              name: 'docs-introduction', 
+              component: MarkdownViewer,
+              props: { fileName: 'introduction' }
+            },
             { path: '', name: 'docs', component: DocsPage },
           ]
         },
