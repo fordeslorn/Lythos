@@ -17,6 +17,9 @@ import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 import SpidersPage from '@/components/pages/spider/SpidersPage.vue'
 import NcMusic from '@/components/pages/spider/NcMusic.vue'
 import Pixiv from '@/components/pages/spider/Pixiv.vue'
+import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
+import IntroductionDocs from '@/components/pages/docs/IntroductionDocs.vue'
+import DocsPage from '@/components/pages/docs/DocsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +72,14 @@ const router = createRouter({
           ]
         },
         {
+          path: 'docs',
+          children: [
+            { path: 'spider', name: 'docs-spider', component: SpiderDocs },
+            { path: 'introduction', name: 'docs-introduction', component: IntroductionDocs },
+            { path: '', name: 'docs', component: DocsPage },
+          ]
+        },
+        {
           path: 'settings',
           children: [
             { path: '', name: 'settings', component: SettingsPage },// 这个空的 path 子路由使得 /settings 路径本身可以渲染一个组件
@@ -79,6 +90,7 @@ const router = createRouter({
         {
           path: 'user',
           children: [
+            { path: '', redirect: '/user/account' }, // 重定向到 account 页面
             { path: 'account', name: 'user-account', component: Account },
             { path: 'settings', name: 'user-settings', component: UserSettings },
             { path: 'notifications', name: 'user-notifications', component: Notifications },

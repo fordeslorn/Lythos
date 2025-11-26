@@ -215,28 +215,37 @@ function handleStopCrawling() {
           <CardContent class="space-y-4">
             <div class="space-y-2">
               <Label for="cookie">Cookie</Label>
-              <Textarea id="cookie" v-model="cookie" placeholder="Enter your Pixiv cookie" />
+              <Textarea 
+                id="cookie" 
+                v-model="cookie" 
+                placeholder="Enter your Pixiv cookie" 
+                class="h-24 resize-none overflow-y-auto"
+              />
             </div>
             <div class="space-y-2">
               <Label for="user-id">User ID</Label>
               <Input id="user-id" v-model="userId" placeholder="Enter the user ID to crawl" />
             </div>
-            <div>
+            <div class="space-y-4">
               <Button
-                v-if="!isRunning"
                 @click="handleStartCrawling"
-                :disabled="isLoading"
+                :disabled="isLoading || isRunning"
                 class="w-full"
               >
-                {{ isLoading ? 'Crawling...' : 'Start Crawling' }}
+                <svg v-if="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Start Crawling
               </Button>
+              
               <Button
-                v-else
+                v-if="isRunning"
                 variant="destructive"
                 @click="handleStopCrawling"
-                class="w-full"
+                class="w-full bg-red-600 hover:bg-red-500 active:bg-red-800 text-white"
               >
-                Stop Crawling
+                Stop
               </Button>
             </div>
           </CardContent>
@@ -266,7 +275,7 @@ function handleStopCrawling() {
         </div>
         <!-- 爬取到的图片预览 -->
          <div class="border rounded-lg p-4 overflow-y-auto max-h-82">
-          <h3 class="font-semibold mb-4">Crawled Images</h3>
+          <h3 class="font-semibold mb-4">Crawled Images Preview</h3>
           <div v-if="crawledImages.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <div v-for="(img, index) in crawledImages" :key="index" class="aspect-video bg-gray-200 rounded overflow-hidden">
               <img :src="img" alt="Crawled Image" class="w-full h-full object-cover" />
