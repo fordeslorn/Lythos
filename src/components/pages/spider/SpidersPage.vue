@@ -9,13 +9,13 @@ const router = useRouter()
 const spiders = [
   {
     title: 'Pixiv Spider',
-    description: 'Crawl illustrations and user information from Pixiv.',
+    description: 'Crawl illustrations from Pixiv.',
     path: '/spider/pixiv',
     icon: Image
   },
   {
     title: 'NetEase Cloud Music Spider',
-    description: 'Crawl playlists and song details from NetEase Cloud Music.',
+    description: 'Crawl songs to local disk from NetEase Cloud Music.',
     path: '/spider/nc-music',
     icon: Music
   },
@@ -45,7 +45,7 @@ function navigateTo(path: string) {
         :key="spider.title"
         @click="navigateTo(spider.path)"
         tabindex="0"
-        class="card-hover cursor-pointer"
+        class="card-hover cursor-pointer transition-colors"
       >
         <CardHeader>
           <div class="flex items-center gap-4 mb-2">
@@ -63,11 +63,11 @@ function navigateTo(path: string) {
 <style scoped>
 .card-hover {
   transition-property: transform, box-shadow;
-  transition-duration: 300ms;
+  transition-duration: 230ms;
   transition-timing-function: ease-in-out;
 }
 .card-hover:hover {
-  transform: translateY(-0.5rem); 
+  transform: translateY(-0.2rem); 
   box-shadow: 0 10px 30px rgba(59,130,246,0.18); 
 }
 /* 可选：键盘可访问时的 focus 样式 */

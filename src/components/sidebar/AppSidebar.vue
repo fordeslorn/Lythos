@@ -42,6 +42,10 @@ const data = computed(() => ({
       title: "Resource",
       url: "/resource",
       icon: Package,
+      items: [
+        { title: "Useful Site", url: "/resource/useful-site" },
+        { title: "Image Library", url: "/resource/image-library" },
+      ],
     },
     {
       title: "Spider",

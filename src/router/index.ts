@@ -10,16 +10,18 @@ import DashboardLayout from '@/components/pages/DashboardLayout.vue'
 import Account from '@/components/pages/user/Account.vue'
 import UserSettings from '@/components/pages/user/UserSettings.vue'
 import Notifications from '@/components/pages/user/Notifications.vue'
-import Resource from '@/components/pages/resource/Resource.vue'
+import Resource from '@/components/pages/resource/ResourcePage.vue'
+import UsefulSite from '@/components/pages/resource/UsefulSite.vue'
+import ImageLibrary from '@/components/pages/resource/ImageLibrary.vue'
 import General from '@/components/pages/settings/General.vue'
 import Billing from '@/components/pages/settings/Billing.vue'
 import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 import SpidersPage from '@/components/pages/spider/SpidersPage.vue'
 import NcMusic from '@/components/pages/spider/NcMusic.vue'
 import Pixiv from '@/components/pages/spider/Pixiv.vue'
-import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
-import IntroductionDocs from '@/components/pages/docs/IntroductionDocs.vue'
 import DocsPage from '@/components/pages/docs/DocsPage.vue'
+import MarkdownViewer from '@/components/pages/docs/MarkdownViewer.vue'
+import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,8 +62,11 @@ const router = createRouter({
         },
         {
           path: 'resource',
-          name: 'resource',
-          component: Resource
+          children: [
+            { path: '', name: 'resource', component: Resource },
+            { path: 'useful-site', name: 'resource-useful-site', component: UsefulSite },
+            { path: 'image-library', name: 'resource-image-library', component: ImageLibrary },
+          ]
         },
         {
           path: 'spider',
@@ -74,8 +79,29 @@ const router = createRouter({
         {
           path: 'docs',
           children: [
-            { path: 'spider', name: 'docs-spider', component: SpiderDocs },
-            { path: 'introduction', name: 'docs-introduction', component: IntroductionDocs },
+            { 
+              path: 'spider', 
+              name: 'docs-spider', 
+              component: SpiderDocs 
+            },
+            { 
+              path: 'spider/pixiv', 
+              name: 'docs-spider-pixiv', 
+              component: MarkdownViewer, 
+              props: { fileName: 'spider-pixiv' } 
+            },
+            { 
+              path: 'spider/nc-music', 
+              name: 'docs-spider-ncmusic', 
+              component: MarkdownViewer, 
+              props: { fileName: 'spider-ncmusic' } 
+            },
+            { 
+              path: 'introduction', 
+              name: 'docs-introduction', 
+              component: MarkdownViewer,
+              props: { fileName: 'introduction' }
+            },
             { path: '', name: 'docs', component: DocsPage },
           ]
         },
