@@ -1,54 +1,70 @@
 <script setup lang="ts">
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
+import { useRouter } from 'vue-router'
+import { Rocket, Music } from 'lucide-vue-next'
+
+const router = useRouter()
+
+const guides = [
+  {
+    title: 'Pixiv Spider Guide',
+    description: 'Learn how to configure and use the Pixiv crawler to download images.',
+    path: '/docs/spider/pixiv',
+    icon: Rocket
+  },
+  {
+    title: 'NcMusic Spider Guide',
+    description: 'Documentation for the NetEase Cloud Music crawler (Coming Soon).',
+    path: '/docs/spider/nc-music',
+    icon: Music
+  }
+]
+
+function navigateTo(path: string) {
+  router.push(path)
+}
 </script>
 
 <template>
   <div class="p-6">
-    <h1 class="text-2xl font-bold mb-6">Spider Documentation</h1>
+    <h1 class="text-2xl font-bold mb-2">Spider Documentation</h1>
+    <p class="text-gray-500 mb-8">Select a guide to view detailed documentation.</p>
     
-    <div class="space-y-6 max-w-4xl">
-      <Card>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card
+        v-for="guide in guides"
+        :key="guide.title"
+        @click="navigateTo(guide.path)"
+        tabindex="0"
+        class="card-hover cursor-pointer transition-colors"
+      >
         <CardHeader>
-          <CardTitle>Pixiv Spider Guide</CardTitle>
+          <div class="flex items-center gap-4">
+              <component :is="guide.icon" class="w-8 h-8 text-[#ffacd3]" />
+            <CardTitle class="text-lg">{{ guide.title }}</CardTitle>
+          </div>
         </CardHeader>
-        <CardContent class="space-y-4">
-          <section>
-            <h3 class="text-lg font-semibold mb-2">1. Getting your Cookie</h3>
-            <p class="text-gray-600 dark:text-gray-300 mb-2">
-              To use the Pixiv spider, you need to provide your session cookie. Here's how to get it:
-            </p>
-            <ol class="list-decimal list-inside space-y-1 text-sm text-gray-600 dark:text-gray-300 ml-4">
-              <li>Log in to <a href="https://www.pixiv.net" target="_blank" class="text-blue-500 hover:underline">pixiv.net</a> in your browser.</li>
-              <li>Open Developer Tools (F12 or Right Click -> Inspect).</li>
-              <li>Go to the <strong>Application</strong> tab (or Storage tab in Firefox).</li>
-              <li>Expand <strong>Cookies</strong> in the left sidebar and select <code>https://www.pixiv.net</code>.</li>
-              <li>Find the cookie named <code>PHPSESSID</code>.</li>
-              <li>Copy the value of <code>PHPSESSID</code> (it should look like <code>12345678_abcdef123456...</code>).</li>
-              <li>Paste the full string <code>PHPSESSID=your_value_here</code> into the Cookie input field.</li>
-            </ol>
-          </section>
-
-          <section>
-            <h3 class="text-lg font-semibold mb-2">2. Finding User ID</h3>
-            <p class="text-gray-600 dark:text-gray-300 mb-2">
-              The User ID is the unique identifier for a Pixiv artist.
-            </p>
-            <ul class="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-300 ml-4">
-              <li>Go to the artist's profile page on Pixiv.</li>
-              <li>Look at the URL: <code>https://www.pixiv.net/en/users/12345678</code>.</li>
-              <li>The number at the end (<code>12345678</code>) is the User ID.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 class="text-lg font-semibold mb-2">3. Troubleshooting</h3>
-            <div class="bg-zinc-100 dark:bg-zinc-900 p-4 rounded-md text-sm">
-              <p class="font-medium mb-1">Images not loading?</p>
-              <p class="text-gray-500">Ensure the backend crawler service is running and has access to the internet. Check the logs for any network errors.</p>
-            </div>
-          </section>
+        <CardContent>
+          <p class="text-sm text-gray-500">{{ guide.description }}</p>
         </CardContent>
       </Card>
     </div>
   </div>
 </template>
+
+<style scoped>
+.card-hover {
+  transition-property: transform, box-shadow;
+  transition-duration: 230ms;
+  transition-timing-function: ease-in-out;
+}
+.card-hover:hover {
+  transform: translateY(-0.2rem); 
+  box-shadow: 0 10px 30px rgba(59,130,246,0.18); 
+}
+/* 可选：键盘可访问时的 focus 样式 */
+.card-hover:focus-visible {
+  outline: none;
+  box-shadow: 0 6px 18px rgba(59,130,246,0.14), 0 0 0 4px rgba(59,130,246,0.08);
+}
+</style>

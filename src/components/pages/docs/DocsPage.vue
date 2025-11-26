@@ -36,13 +36,11 @@ function navigateTo(path: string) {
         :key="doc.title"
         @click="navigateTo(doc.path)"
         tabindex="0"
-        class="card-hover cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+        class="card-hover cursor-pointer transition-colors"
       >
         <CardHeader>
           <div class="flex items-center gap-4">
-            <div class="p-2 bg-primary/10 rounded-lg">
-              <component :is="doc.icon" class="w-6 h-6 text-primary" />
-            </div>
+              <component :is="doc.icon" class="w-8 h-8 text-[#ffacd3]" />
             <CardTitle class="text-lg">{{ doc.title }}</CardTitle>
           </div>
         </CardHeader>
@@ -53,3 +51,20 @@ function navigateTo(path: string) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.card-hover {
+  transition-property: transform, box-shadow;
+  transition-duration: 230ms;
+  transition-timing-function: ease-in-out;
+}
+.card-hover:hover {
+  transform: translateY(-0.2rem); 
+  box-shadow: 0 10px 30px rgba(59,130,246,0.18); 
+}
+/* 可选：键盘可访问时的 focus 样式 */
+.card-hover:focus-visible {
+  outline: none;
+  box-shadow: 0 6px 18px rgba(59,130,246,0.14), 0 0 0 4px rgba(59,130,246,0.08);
+}
+</style>
