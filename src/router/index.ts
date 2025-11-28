@@ -10,6 +10,7 @@ import DashboardLayout from '@/components/pages/DashboardLayout.vue'
 import Account from '@/components/pages/user/Account.vue'
 import UserSettings from '@/components/pages/user/UserSettings.vue'
 import Notifications from '@/components/pages/user/Notifications.vue'
+import MyCollection from '@/components/pages/user/MyCollection.vue'
 import Resource from '@/components/pages/resource/ResourcePage.vue'
 import UsefulSite from '@/components/pages/resource/UsefulSite.vue'
 import ImageLibrary from '@/components/pages/resource/ImageLibrary.vue'
@@ -118,6 +119,7 @@ const router = createRouter({
           children: [
             { path: '', redirect: '/user/account' }, // 重定向到 account 页面
             { path: 'account', name: 'user-account', component: Account },
+            { path: 'collection', name: 'user-collection', component: MyCollection },
             { path: 'settings', name: 'user-settings', component: UserSettings },
             { path: 'notifications', name: 'user-notifications', component: Notifications },
           ]
