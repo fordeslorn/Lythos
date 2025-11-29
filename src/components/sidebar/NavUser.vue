@@ -73,6 +73,16 @@ const userStore = useUserStore()
 
           <DropdownMenuSeparator />
 
+          <DropdownMenuGroup v-if="userStore.userRights.admin">
+            <RouterLink to="/admin" custom v-slot="{ navigate }">
+              <DropdownMenuItem @click="navigate">
+                Admin
+              </DropdownMenuItem>
+            </RouterLink>
+          </DropdownMenuGroup>
+
+          <DropdownMenuSeparator v-if="userStore.userRights.admin" />
+
           <DropdownMenuGroup>
             <RouterLink to="/user/account" custom v-slot="{ navigate }">
               <DropdownMenuItem @click="navigate">

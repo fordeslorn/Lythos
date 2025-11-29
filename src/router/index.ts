@@ -23,6 +23,7 @@ import Pixiv from '@/components/pages/spider/Pixiv.vue'
 import DocsPage from '@/components/pages/docs/DocsPage.vue'
 import MarkdownViewer from '@/components/pages/docs/MarkdownViewer.vue'
 import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
+import AdminPage from '@/components/pages/admin/AdminPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,6 +61,12 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: DashboardPage,
+        },
+        {
+          path: 'admin',
+          name: 'admin',
+          component: AdminPage,
+          meta: { requiresAdmin: true }
         },
         {
           path: 'resource',
@@ -143,6 +150,9 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth && !isAuthenticated) {
     // 需要登录但未登录，跳转到登录页
     next({ name: 'login' });
+  } else if (to.meta.requiresAdmin && !userStore.userRights.admin) {
+    // 需要管理员权限但不是管理员，跳转到仪表盘
+    next({ name: 'dashboard' });
   } else if (to.meta.guestOnly && isAuthenticated) {
     // 只允许访客访问但已登录，跳转到仪表盘
     next({ name: 'dashboard' });
