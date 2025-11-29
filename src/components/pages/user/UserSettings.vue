@@ -85,7 +85,7 @@ const isEmailUpdateDisabled = computed(() => {
 // 获取速率限制数据
 async function fetchRateLimits() {
   try {
-    const response = await apiClient.get('/user/rate-limits')
+    const response = await apiClient.get('/user-settings/rate-limits')
     console.log('Rate limits response:', response.data) 
     if (response.data.success) {
       rateLimits.value = response.data.limits
@@ -211,12 +211,12 @@ async function handleUpdateUsername() {
     return
   }
   try {
-    await apiClient.put('/user/username', { name: newUsername.value })
+    const response = await apiClient.put('/user-settings/username', { name: newUsername.value })
     userStore.setUser({
       id: userStore.userId!,
       name: newUsername.value,
       email: userStore.userEmail!,
-      avatar: userStore.userAvatar,
+      avatar: userStore.userAvatar
     })
     notificationStore.showNotification('Username updated successfully!', 'success')
     newUsername.value = ''
@@ -245,7 +245,7 @@ async function onCaptchaSuccess(captchaCode: string) {
   isSendingCode.value = true
   try {
     // 将 captchaCode 与 email 一同发送
-    await apiClient.post('/user/send-email-code', { 
+    await apiClient.post('/user-settings/send-email-code', { 
       email: newEmail.value,
       captchaCode: captchaCode 
     })
@@ -269,7 +269,7 @@ async function handleUpdateEmail() {
     return
   }
   try {
-    await apiClient.put('/user/email', {
+    await apiClient.put('/user-settings/email', {
       email: newEmail.value,
       code: emailVerificationCode.value,
     })
@@ -297,7 +297,7 @@ async function handleUpdatePassword() {
     return
   }
   try {
-    await apiClient.put('/user/password', {
+    await apiClient.put('/user-settings/password', {
       oldPassword: oldPassword.value,
       newPassword: newPassword.value,
     })

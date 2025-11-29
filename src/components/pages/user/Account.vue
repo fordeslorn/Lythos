@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useRouter } from 'vue-router'
-import { FolderHeart, Settings, Bell } from 'lucide-vue-next'
+import { FolderHeart, Settings, Bell, Image as ImageIcon } from 'lucide-vue-next'
 
 const router = useRouter()
 
@@ -12,6 +12,13 @@ const menuItems = [
     path: '/user/collection',
     icon: FolderHeart,
     color: 'text-pink-500'
+  },
+  {
+    title: 'My Upload Images',
+    description: 'Manage your uploaded images.',
+    path: '/user/images',
+    icon: ImageIcon,
+    color: 'text-purple-500'
   },
   {
     title: 'Settings',

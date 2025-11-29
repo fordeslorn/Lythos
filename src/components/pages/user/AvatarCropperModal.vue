@@ -82,7 +82,7 @@ async function onSave() {
     formData.append('avatar', blob, 'avatar.png')
 
     try {
-      const response = await apiClient.post('/user/avatar', formData, {
+      const response = await apiClient.post('/user-settings/avatar', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 

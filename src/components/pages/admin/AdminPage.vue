@@ -13,7 +13,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { RefreshCw } from 'lucide-vue-next'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { RefreshCw, ChevronDown } from 'lucide-vue-next'
 
 interface User {
   id: string
@@ -22,6 +28,7 @@ interface User {
   avatarUrl: string
   userRights: {
     admin: boolean
+    uploadVerified: boolean
   }
 }
 
@@ -39,6 +46,21 @@ const fetchUsers = async () => {
     console.error('Failed to fetch users:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const updateUploadVerification = async (user: User, verified: boolean) => {
+  try {
+    const response = await apiClient.post('/admin/upload-verify', {
+      userId: user.id,
+      verified: verified
+    })
+    if (response.data.success) {
+      // Update local state
+      user.userRights.uploadVerified = verified
+    }
+  } catch (error) {
+    console.error('Failed to update upload verification:', error)
   }
 }
 
@@ -65,6 +87,7 @@ onMounted(() => {
             <TableHead>Username</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>ID</TableHead>
+            <TableHead>Upload Verified</TableHead>
             <TableHead class="text-right">Role</TableHead>
           </TableRow>
         </TableHeader>
@@ -79,6 +102,24 @@ onMounted(() => {
             <TableCell class="font-medium">{{ user.username }}</TableCell>
             <TableCell>{{ user.email }}</TableCell>
             <TableCell class="font-mono text-xs text-muted-foreground">{{ user.id }}</TableCell>
+            <TableCell>
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="outline" size="sm" class="ml-auto">
+                    {{ user.userRights?.uploadVerified ? 'Verified' : 'Unverified' }}
+                    <ChevronDown class="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem @click="updateUploadVerification(user, true)">
+                    Verified
+                  </DropdownMenuItem>
+                  <DropdownMenuItem @click="updateUploadVerification(user, false)">
+                    Unverified
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
             <TableCell class="text-right">
               <Badge v-if="user.userRights?.admin" variant="default">Admin</Badge>
               <Badge v-else variant="secondary">User</Badge>
