@@ -15,6 +15,7 @@ import MyUploadImages from '@/components/pages/user/MyUploadImages.vue'
 import Resource from '@/components/pages/resource/ResourcePage.vue'
 import UsefulSite from '@/components/pages/resource/UsefulSite.vue'
 import ImageLibrary from '@/components/pages/resource/ImageLibrary.vue'
+import ImageDetail from '@/components/pages/resource/ImageDetail.vue'
 import General from '@/components/pages/settings/General.vue'
 import Billing from '@/components/pages/settings/Billing.vue'
 import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
@@ -75,6 +76,7 @@ const router = createRouter({
             { path: '', name: 'resource', component: Resource },
             { path: 'useful-site', name: 'resource-useful-site', component: UsefulSite },
             { path: 'image-library', name: 'resource-image-library', component: ImageLibrary },
+            { path: 'image-library/:id', name: 'resource-image-detail', component: ImageDetail },
           ]
         },
         {

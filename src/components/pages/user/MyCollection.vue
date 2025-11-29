@@ -1,51 +1,55 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FolderPlus, Folder } from 'lucide-vue-next'
+import { imageApi } from '@/api'
 
-interface Collection {
-  id: number
-  name: string
-  cover?: string
-  itemCount: number
-  createdAt: string
-}
-
-const collections = ref<Collection[]>([
-  {
-    id: 1,
-    name: 'Default Collection',
-    cover: '/catcat.gif',
-    itemCount: 0,
-    createdAt: new Date().toLocaleDateString()
-  }
-])
-
+const collections = ref<any[]>([])
 const isCreateDialogOpen = ref(false)
 const newCollectionName = ref('')
+const loading = ref(false)
 
-function createCollection() {
+const fetchCollections = async () => {
+  loading.value = true
+  try {
+    const res = await imageApi.getUserCollections()
+    if (res.data.success) {
+      collections.value = res.data.collections
+    }
+  } catch (error) {
+    console.error('Failed to fetch collections', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function createCollection() {
   if (!newCollectionName.value.trim()) return
 
-  collections.value.push({
-    id: Date.now(),
-    name: newCollectionName.value,
-    itemCount: 0,
-    createdAt: new Date().toLocaleDateString()
-  })
-
-  newCollectionName.value = ''
-  isCreateDialogOpen.value = false
+  try {
+    const res = await imageApi.createCollection(newCollectionName.value)
+    if (res.data.success) {
+      collections.value.push(res.data.collection)
+      newCollectionName.value = ''
+      isCreateDialogOpen.value = false
+    }
+  } catch (error) {
+    console.error('Failed to create collection', error)
+  }
 }
 
 function openCollection(id: number) {
   // TODO: Navigate to collection details or expand
   console.log('Open collection', id)
 }
+
+onMounted(() => {
+  fetchCollections()
+})
 </script>
 
 <template>

@@ -113,7 +113,8 @@ const deleteImage = async (id: string) => {
   try {
     await apiClient.delete(`/user/images/${id}`)
     notificationStore.showNotification('Image deleted successfully', 'success')
-    fetchImages()
+    // Refresh the list
+    await fetchImages()
   } catch (error) {
     console.error('Delete failed:', error)
     notificationStore.showNotification('Failed to delete image', 'error')
@@ -179,6 +180,7 @@ onMounted(() => {
         <TableHeader>
           <TableRow>
             <TableHead class="w-[100px]">Preview</TableHead>
+            <TableHead>ID</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Uploaded At</TableHead>
             <TableHead class="text-right">Actions</TableHead>
@@ -191,8 +193,9 @@ onMounted(() => {
                 <img :src="image.url" :alt="image.title" class="h-full w-full object-cover" />
               </div>
             </TableCell>
+            <TableCell class="font-mono text-xs">{{ image.id }}</TableCell>
             <TableCell class="font-medium">
-              <router-link :to="`/resource/image/${image.id}`" class="hover:underline">
+              <router-link :to="`/resource/image-library/${image.id}`" class="hover:underline">
                 {{ image.title }}
               </router-link>
             </TableCell>
