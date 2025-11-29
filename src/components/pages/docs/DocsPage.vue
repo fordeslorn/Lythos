@@ -1,70 +1,80 @@
 <script setup lang="ts">
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { BookOpen, Rocket } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 
-const docs = [
-  {
-    title: 'Introduction',
-    description: 'Learn about the features and capabilities of this platform.',
-    path: '/docs/introduction',
-    icon: BookOpen
-  },
-  {
-    title: 'Spider Guide',
-    description: 'How to use the Pixiv and other spider tools effectively.',
-    path: '/docs/spider',
-    icon: Rocket
-  }
-]
+const navigateTo = (name: string) => {
+  router.push({ name })
+}
 
-function navigateTo(path: string) {
-  router.push(path)
+const isActive = (name: string) => {
+  // Simple check for exact match or if it's a child route (e.g. spider docs)
+  return route.name === name || (name === 'docs-spider' && route.path.startsWith('/docs/spider'))
 }
 </script>
 
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-2">Documentation</h1>
-    <p class="text-gray-500 mb-8">Guides and references for using the management system.</p>
+  <div class="p-6 space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">Documentation</h1>
+      <p class="text-muted-foreground">Guides and references for using the management system.</p>
+    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <Card
-        v-for="doc in docs"
-        :key="doc.title"
-        @click="navigateTo(doc.path)"
-        tabindex="0"
-        class="card-hover cursor-pointer transition-colors"
-      >
-        <CardHeader>
-          <div class="flex items-center gap-4">
-              <component :is="doc.icon" class="w-8 h-8 text-[#ffacd3]" />
-            <CardTitle class="text-lg">{{ doc.title }}</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p class="text-sm text-gray-500">{{ doc.description }}</p>
-        </CardContent>
-      </Card>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Sidebar Navigation -->
+      <div class="space-y-4">
+        <Card 
+          class="cursor-pointer transition-all hover:bg-accent"
+          :class="{ 'border-primary bg-accent': isActive('docs-introduction') }"
+          @click="navigateTo('docs-introduction')"
+        >
+          <CardHeader class="flex flex-row items-center space-y-0 p-4">
+            <BookOpen class="w-5 h-5 mr-3 text-muted-foreground" />
+            <div>
+              <CardTitle class="text-base">Introduction</CardTitle>
+              <CardDescription>Platform features overview</CardDescription>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Card 
+          class="cursor-pointer transition-all hover:bg-accent"
+          :class="{ 'border-primary bg-accent': isActive('docs-spider') }"
+          @click="navigateTo('docs-spider')"
+        >
+          <CardHeader class="flex flex-row items-center space-y-0 p-4">
+            <Rocket class="w-5 h-5 mr-3 text-muted-foreground" />
+            <div>
+              <CardTitle class="text-base">Spider Guide</CardTitle>
+              <CardDescription>Crawler tools documentation</CardDescription>
+            </div>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <!-- Content Area -->
+      <div class="md:col-span-2 border-l border-muted-foreground/10 pl-6">
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.card-hover {
-  transition-property: transform, box-shadow;
-  transition-duration: 230ms;
-  transition-timing-function: ease-in-out;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
 }
-.card-hover:hover {
-  transform: translateY(-0.2rem); 
-  box-shadow: 0 10px 30px rgba(59,130,246,0.18); 
-}
-/* 可选：键盘可访问时的 focus 样式 */
-.card-hover:focus-visible {
-  outline: none;
-  box-shadow: 0 6px 18px rgba(59,130,246,0.14), 0 0 0 4px rgba(59,130,246,0.08);
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

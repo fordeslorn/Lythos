@@ -90,7 +90,15 @@ const router = createRouter({
         },
         {
           path: 'docs',
+          component: DocsPage,
           children: [
+            { path: '', redirect: { name: 'docs-introduction' } },
+            { 
+              path: 'introduction', 
+              name: 'docs-introduction', 
+              component: MarkdownViewer,
+              props: { fileName: 'introduction' }
+            },
             { 
               path: 'spider', 
               name: 'docs-spider', 
@@ -108,19 +116,13 @@ const router = createRouter({
               component: MarkdownViewer, 
               props: { fileName: 'spider-ncmusic' } 
             },
-            { 
-              path: 'introduction', 
-              name: 'docs-introduction', 
-              component: MarkdownViewer,
-              props: { fileName: 'introduction' }
-            },
-            { path: '', name: 'docs', component: DocsPage },
           ]
         },
         {
           path: 'settings',
+          component: SettingsPage,
           children: [
-            { path: '', name: 'settings', component: SettingsPage },// 这个空的 path 子路由使得 /settings 路径本身可以渲染一个组件
+            { path: '', redirect: { name: 'settings-general' } },
             { path: 'general', name: 'settings-general', component: General },
             { path: 'billing', name: 'settings-billing', component: Billing },
           ]

@@ -105,7 +105,15 @@ onMounted(() => {
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
-                  <Button variant="outline" size="sm" class="ml-auto">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    class="ml-auto transition-colors duration-200"
+                    :class="{
+                      'bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': user.userRights?.uploadVerified,
+                      'bg-red-100 text-red-700 hover:bg-red-200 hover:text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900': !user.userRights?.uploadVerified
+                    }"
+                  >
                     {{ user.userRights?.uploadVerified ? 'Verified' : 'Unverified' }}
                     <ChevronDown class="ml-2 h-4 w-4" />
                   </Button>
