@@ -95,8 +95,8 @@ const uploadImages = async () => {
           'Content-Type': 'multipart/form-data'
         }
       })
+      notificationStore.showNotification(`"${file.name}" uploaded successfully`, 'success')
     }
-    notificationStore.showNotification('Images uploaded successfully!', 'success')
     uploadQueue.value = []
     fetchImages()
   } catch (error: any) {

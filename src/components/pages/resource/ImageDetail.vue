@@ -47,6 +47,19 @@ const isDialogOpen = ref(false)
 const newCollectionName = ref('')
 const creatingCollection = ref(false)
 
+const fetchCollections = async () => {
+  try {
+    const res = await imageApi.getUserCollections(imageId)
+    if (res.data.success) {
+      collections.value = res.data.collections
+      // Update collected state based on whether ANY collection contains the image
+      collected.value = collections.value.some((c: any) => c.containsImage)
+    }
+  } catch (error) {
+    console.error('Failed to fetch collections', error)
+  }
+}
+
 const fetchDetails = async (background = false) => {
   if (!background) loading.value = true
   try {
@@ -54,24 +67,16 @@ const fetchDetails = async (background = false) => {
     if (res.data.success) {
       image.value = res.data.image
       liked.value = res.data.liked
-      collected.value = res.data.collected
+      // We don't rely on res.data.collected anymore for the UI state
+      // because we want to know if it's in ANY collection
     }
+    // Always fetch collections to determine the true collected state
+    await fetchCollections()
   } catch (error) {
     console.error('Failed to load image details', error)
     notificationStore.showNotification('Failed to load image details', 'error')
   } finally {
     if (!background) loading.value = false
-  }
-}
-
-const fetchCollections = async () => {
-  try {
-    const res = await imageApi.getUserCollections(imageId)
-    if (res.data.success) {
-      collections.value = res.data.collections
-    }
-  } catch (error) {
-    console.error('Failed to fetch collections', error)
   }
 }
 
@@ -104,7 +109,7 @@ const toggleCollectionImage = async (collection: any) => {
       if (res.data.success) {
         collection.containsImage = false
         collection.itemCount = Math.max(0, (collection.itemCount || 0) - 1)
-        notificationStore.showNotification('Cancel to Collection Successfully!', 'success')
+        notificationStore.showNotification('Removed from collection', 'success')
       }
     } else {
       // Add
@@ -112,19 +117,13 @@ const toggleCollectionImage = async (collection: any) => {
       if (res.data.success) {
         collection.containsImage = true
         collection.itemCount = (collection.itemCount || 0) + 1
-        notificationStore.showNotification('Add to Collection Successfully!', 'success')
-        // Manually update collected state to true if added to any collection
-        collected.value = true
+        notificationStore.showNotification('Added to collection', 'success')
       }
     }
     
-    // Check if any collection still contains the image
-    const hasCollections = collections.value.some(c => c.containsImage)
+    // Update collected state immediately based on current collections state
+    collected.value = collections.value.some(c => c.containsImage)
     
-    // Only refresh details if no collections contain the image anymore (to update Save button state correctly)
-    if (!hasCollections) {
-      await fetchDetails(true)
-    }
   } catch (error) {
     console.error('Failed to toggle collection status', error)
     notificationStore.showNotification('Operation failed', 'error')
@@ -148,21 +147,21 @@ const toggleLike = async () => {
 }
 
 const toggleCollection = async () => {
+  // If already collected (in any collection), open the drawer
+  if (collected.value) {
+    isDrawerOpen.value = true
+    return
+  }
+
+  // If not collected, add to default collection
   collectAnimating.value = true
   try {
     const res = await imageApi.toggleCollection(imageId)
     if (res.data.success) {
-      collected.value = res.data.collected
-      notificationStore.showNotification(
-        collected.value ? 'Added to My Collection' : 'Removed from My Collection',
-        'success'
-      )
-      
-      // If added to collection, open drawer and fetch collections to show "My Collection" as selected
-      if (collected.value) {
-        isDrawerOpen.value = true
-        await fetchCollections()
-      }
+      // Refresh collections to update state
+      await fetchCollections()
+      notificationStore.showNotification('Added to My Collection', 'success')
+      isDrawerOpen.value = true
     }
   } catch (error) {
     console.error('Failed to toggle collection', error)
@@ -247,68 +246,6 @@ onMounted(() => {
           </Button>
         </div>
 
-        <div v-if="collected" class="mt-4">
-          <Drawer v-model:open="isDrawerOpen">
-            <DrawerTrigger as-child>
-              <Button variant="outline" class="w-full" @click="fetchCollections">
-                <FolderPlus class="w-4 h-4 mr-2" />
-                Change to Collection
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <div class="mx-auto w-full max-w-4xl h-[50vh] flex flex-col p-6">
-                <DrawerHeader class="text-left px-0">
-                  <DrawerTitle class="text-2xl">Change to Collection</DrawerTitle>
-                  <DrawerDescription>Select a collection to add this image to.</DrawerDescription>
-                </DrawerHeader>
-                
-                <div class="flex justify-end mb-4">
-                  <Dialog v-model:open="isDialogOpen">
-                    <DialogTrigger as-child>
-                      <Button>
-                        <Plus class="w-4 h-4 mr-2" /> New Collection
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Collection</DialogTitle>
-                        <DialogDescription>Enter a name for your new collection.</DialogDescription>
-                      </DialogHeader>
-                      <div class="py-4">
-                        <Input v-model="newCollectionName" placeholder="Collection Name" />
-                      </div>
-                      <DialogFooter>
-                        <Button @click="createCollection" :disabled="creatingCollection">Create</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto pb-6">
-                  <Card
-                    v-for="col in collections"
-                    :key="col.id"
-                    class="cursor-pointer hover:shadow-md transition-all duration-200 border bg-white dark:bg-gray-800"
-                    :class="{ 'border-primary bg-primary/5': col.containsImage, 'border-gray-200 hover:border-primary/50': !col.containsImage }"
-                    @click="toggleCollectionImage(col)"
-                  >
-                    <CardContent class="p-2 flex items-center space-x-2">
-                      <div class="p-1 rounded-full" :class="{ 'bg-primary text-white': col.containsImage, 'bg-primary/10 text-primary': !col.containsImage }">
-                        <Check v-if="col.containsImage" class="w-4 h-4" />
-                        <Folder v-else class="w-4 h-4" />
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <h3 class="font-medium text-sm truncate">{{ col.name }}</h3>
-                        <p class="text-xs text-muted-foreground">{{ col.itemCount || 0 }} items</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </DrawerContent>
-          </Drawer>
-        </div>
-
         <Card>
           <CardContent class="p-6 space-y-4">
             <div class="flex justify-between items-center py-2 border-b">
@@ -342,6 +279,61 @@ onMounted(() => {
       <h2 class="text-xl font-semibold">Image not found</h2>
       <Button class="mt-4" @click="goBack">Go Back</Button>
     </div>
+
+    <!-- Collection Drawer -->
+    <Drawer v-model:open="isDrawerOpen">
+      <DrawerContent>
+        <div class="mx-auto w-full max-w-4xl h-[50vh] flex flex-col p-6">
+          <DrawerHeader class="text-left px-0">
+            <DrawerTitle class="text-2xl">Change to Collection</DrawerTitle>
+            <DrawerDescription>Select a collection to add this image to.</DrawerDescription>
+          </DrawerHeader>
+          
+          <div class="flex justify-end mb-4">
+            <Dialog v-model:open="isDialogOpen">
+              <DialogTrigger as-child>
+                <Button>
+                  <Plus class="w-4 h-4 mr-2" /> New Collection
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Collection</DialogTitle>
+                  <DialogDescription>Enter a name for your new collection.</DialogDescription>
+                </DialogHeader>
+                <div class="py-4">
+                  <Input v-model="newCollectionName" placeholder="Collection Name" />
+                </div>
+                <DialogFooter>
+                  <Button @click="createCollection" :disabled="creatingCollection">Create</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto pb-6">
+            <Card
+              v-for="col in collections"
+              :key="col.id"
+              class="cursor-pointer hover:shadow-md transition-all duration-200 border bg-white dark:bg-gray-800"
+              :class="{ 'border-primary bg-primary/5': col.containsImage, 'border-gray-200 hover:border-primary/50': !col.containsImage }"
+              @click="toggleCollectionImage(col)"
+            >
+              <CardContent class="p-2 flex items-center space-x-2">
+                <div class="p-1 rounded-full" :class="{ 'bg-primary text-white': col.containsImage, 'bg-primary/10 text-primary': !col.containsImage }">
+                  <Check v-if="col.containsImage" class="w-4 h-4" />
+                  <Folder v-else class="w-4 h-4" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-medium text-sm truncate">{{ col.name }}</h3>
+                  <p class="text-xs text-muted-foreground">{{ col.itemCount || 0 }} items</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   </div>
 </template>
 
