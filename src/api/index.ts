@@ -13,3 +13,17 @@ const apiClient = axios.create({
 // 例如，处理 token 失效等
 
 export default apiClient;
+
+export const imageApi = {
+  getImages: (params: { limit?: number; offset?: number }) => apiClient.get('/images', { params }),
+  getImageDetails: (id: string) => apiClient.get(`/images/${id}/details`),
+  toggleLike: (id: string) => apiClient.post(`/images/${id}/like`),
+  toggleCollection: (id: string) => apiClient.post(`/images/${id}/collect`),
+  getUserCollections: (imageId?: string) => apiClient.get('/collections', { params: { imageId } }),
+  createCollection: (name: string) => apiClient.post('/collections', { name }),
+  updateCollectionCover: (id: number, cover: string) => apiClient.put(`/collections/${id}/cover`, { cover }),
+  deleteCollection: (id: number) => apiClient.delete(`/collections/${id}`),
+  addToCollection: (collectionId: number, imageId: string) => apiClient.post(`/collections/${collectionId}/items`, { imageId }),
+  removeFromCollection: (collectionId: number, imageId: string) => apiClient.delete(`/collections/${collectionId}/items/${imageId}`),
+  getCollectionItems: (collectionId: number) => apiClient.get(`/collections/${collectionId}`),
+};

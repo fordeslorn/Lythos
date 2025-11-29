@@ -10,9 +10,13 @@ import DashboardLayout from '@/components/pages/DashboardLayout.vue'
 import Account from '@/components/pages/user/Account.vue'
 import UserSettings from '@/components/pages/user/UserSettings.vue'
 import Notifications from '@/components/pages/user/Notifications.vue'
+import MyCollection from '@/components/pages/user/MyCollection.vue'
+import CollectionDetail from '@/components/pages/user/CollectionDetail.vue'
+import MyUploadImages from '@/components/pages/user/MyUploadImages.vue'
 import Resource from '@/components/pages/resource/ResourcePage.vue'
 import UsefulSite from '@/components/pages/resource/UsefulSite.vue'
 import ImageLibrary from '@/components/pages/resource/ImageLibrary.vue'
+import ImageDetail from '@/components/pages/resource/ImageDetail.vue'
 import General from '@/components/pages/settings/General.vue'
 import Billing from '@/components/pages/settings/Billing.vue'
 import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
@@ -22,6 +26,7 @@ import Pixiv from '@/components/pages/spider/Pixiv.vue'
 import DocsPage from '@/components/pages/docs/DocsPage.vue'
 import MarkdownViewer from '@/components/pages/docs/MarkdownViewer.vue'
 import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
+import AdminPage from '@/components/pages/admin/AdminPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -61,11 +66,18 @@ const router = createRouter({
           component: DashboardPage,
         },
         {
+          path: 'admin',
+          name: 'admin',
+          component: AdminPage,
+          meta: { requiresAdmin: true }
+        },
+        {
           path: 'resource',
           children: [
             { path: '', name: 'resource', component: Resource },
             { path: 'useful-site', name: 'resource-useful-site', component: UsefulSite },
             { path: 'image-library', name: 'resource-image-library', component: ImageLibrary },
+            { path: 'image-library/:id', name: 'resource-image-detail', component: ImageDetail },
           ]
         },
         {
@@ -78,7 +90,15 @@ const router = createRouter({
         },
         {
           path: 'docs',
+          component: DocsPage,
           children: [
+            { path: '', redirect: { name: 'docs-introduction' } },
+            { 
+              path: 'introduction', 
+              name: 'docs-introduction', 
+              component: MarkdownViewer,
+              props: { fileName: 'introduction' }
+            },
             { 
               path: 'spider', 
               name: 'docs-spider', 
@@ -96,19 +116,13 @@ const router = createRouter({
               component: MarkdownViewer, 
               props: { fileName: 'spider-ncmusic' } 
             },
-            { 
-              path: 'introduction', 
-              name: 'docs-introduction', 
-              component: MarkdownViewer,
-              props: { fileName: 'introduction' }
-            },
-            { path: '', name: 'docs', component: DocsPage },
           ]
         },
         {
           path: 'settings',
+          component: SettingsPage,
           children: [
-            { path: '', name: 'settings', component: SettingsPage },// 这个空的 path 子路由使得 /settings 路径本身可以渲染一个组件
+            { path: '', redirect: { name: 'settings-general' } },
             { path: 'general', name: 'settings-general', component: General },
             { path: 'billing', name: 'settings-billing', component: Billing },
           ]
@@ -118,6 +132,9 @@ const router = createRouter({
           children: [
             { path: '', redirect: '/user/account' }, // 重定向到 account 页面
             { path: 'account', name: 'user-account', component: Account },
+            { path: 'collection', name: 'user-collection', component: MyCollection },
+            { path: 'collection/:id', name: 'user-collection-detail', component: CollectionDetail },
+            { path: 'images', name: 'user-images', component: MyUploadImages },
             { path: 'settings', name: 'user-settings', component: UserSettings },
             { path: 'notifications', name: 'user-notifications', component: Notifications },
           ]
@@ -141,6 +158,9 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth && !isAuthenticated) {
     // 需要登录但未登录，跳转到登录页
     next({ name: 'login' });
+  } else if (to.meta.requiresAdmin && !userStore.userRights.admin) {
+    // 需要管理员权限但不是管理员，跳转到仪表盘
+    next({ name: 'dashboard' });
   } else if (to.meta.guestOnly && isAuthenticated) {
     // 只允许访客访问但已登录，跳转到仪表盘
     next({ name: 'dashboard' });

@@ -7,7 +7,48 @@
     <title>System</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <style>
+        .app-loading {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          background-color: #ffffff;
+          z-index: 9999;
+        }
+        .app-loading img {
+          width: 200px;
+          height: 200px;
+          object-fit: contain;
+        }
+        .loading-text {
+          margin-top: 10px;
+          font-family: "Comic Sans MS", "Chalkboard SE", "Arial Rounded MT Bold", sans-serif;
+          font-size: 24px;
+          font-weight: bold;
+          color: #666;
+          letter-spacing: 2px;
+        }
+        @media (prefers-color-scheme: dark) {
+          .app-loading {
+            background-color: #09090b;
+          }
+          .loading-text {
+            color: #e5e7eb;
+          }
+        }
+      </style>
+      <div class="app-loading">
+        <img src="/catcat.gif" alt="Loading..." />
+        <div class="loading-text">Loading...</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
