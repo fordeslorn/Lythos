@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { RefreshCw } from 'lucide-vue-next'
 
 interface User {
@@ -79,8 +80,8 @@ onMounted(() => {
             <TableCell>{{ user.email }}</TableCell>
             <TableCell class="font-mono text-xs text-muted-foreground">{{ user.id }}</TableCell>
             <TableCell class="text-right">
-              <span v-if="user.userRights?.admin" class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80">Admin</span>
-              <span v-else class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">User</span>
+              <Badge v-if="user.userRights?.admin" variant="default">Admin</Badge>
+              <Badge v-else variant="secondary">User</Badge>
             </TableCell>
           </TableRow>
         </TableBody>
