@@ -314,9 +314,9 @@ async function handleUpdatePassword() {
 </script>
 
 <template>
-  <div class="py-6">
-    <h1 class="text-2xl font-bold mb-6">User Settings</h1>
-    <span>You can update your profile information below.</span><br /><br />
+  <div class="p-6">
+    <h1 class="text-2xl font-bold mb-2">User Settings</h1>
+    <p class="text-gray-500 mb-8">You can update your profile information below.</p><br /><br />
     <div class="space-y-6 max-w-3xl mx-auto w-full px-4">
 
       <!-- Avatar Card -->

@@ -5,10 +5,10 @@ const userStore = useUserStore();
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="p-6">
     <div>
       <h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
-      <p class="text-muted-foreground">
+      <p class="text-muted-foreground mt-2 mb-6">
         Welcome back, {{ userStore.userName }}!
       </p>
     </div>
