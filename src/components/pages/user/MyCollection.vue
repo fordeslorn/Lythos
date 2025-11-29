@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { FolderPlus, Folder } from 'lucide-vue-next'
 import { imageApi } from '@/api'
 
+const router = useRouter()
 const collections = ref<any[]>([])
 const isCreateDialogOpen = ref(false)
 const newCollectionName = ref('')
@@ -43,8 +45,7 @@ async function createCollection() {
 }
 
 function openCollection(id: number) {
-  // TODO: Navigate to collection details or expand
-  console.log('Open collection', id)
+  router.push(`/user/collection/${id}`)
 }
 
 onMounted(() => {

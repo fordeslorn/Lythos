@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Heart, Star, ArrowLeft, Download, Share2, FolderPlus, Folder, Plus } from 'lucide-vue-next'
+import { Heart, Star, ArrowLeft, Download, Share2, FolderPlus, Folder, Plus, Check } from 'lucide-vue-next'
 import { useNotificationStore } from '@/stores/notification'
 import {
   Drawer,
@@ -47,8 +47,8 @@ const isDialogOpen = ref(false)
 const newCollectionName = ref('')
 const creatingCollection = ref(false)
 
-const fetchDetails = async () => {
-  loading.value = true
+const fetchDetails = async (background = false) => {
+  if (!background) loading.value = true
   try {
     const res = await imageApi.getImageDetails(imageId)
     if (res.data.success) {
@@ -60,13 +60,13 @@ const fetchDetails = async () => {
     console.error('Failed to load image details', error)
     notificationStore.showNotification('Failed to load image details', 'error')
   } finally {
-    loading.value = false
+    if (!background) loading.value = false
   }
 }
 
 const fetchCollections = async () => {
   try {
-    const res = await imageApi.getUserCollections()
+    const res = await imageApi.getUserCollections(imageId)
     if (res.data.success) {
       collections.value = res.data.collections
     }
@@ -81,7 +81,9 @@ const createCollection = async () => {
   try {
     const res = await imageApi.createCollection(newCollectionName.value)
     if (res.data.success) {
-      collections.value.push(res.data.collection)
+      // Add the new collection to the list. It won't contain the image initially.
+      const newCol = { ...res.data.collection, containsImage: false }
+      collections.value.push(newCol)
       newCollectionName.value = ''
       notificationStore.showNotification('Collection created', 'success')
       isDialogOpen.value = false
@@ -94,16 +96,38 @@ const createCollection = async () => {
   }
 }
 
-const addToCollection = async (collectionId: number, collectionName: string) => {
+const toggleCollectionImage = async (collection: any) => {
   try {
-    const res = await imageApi.addToCollection(collectionId, imageId)
-    if (res.data.success) {
-      notificationStore.showNotification(`Added to ${collectionName}`, 'success')
-      isDrawerOpen.value = false
+    if (collection.containsImage) {
+      // Remove
+      const res = await imageApi.removeFromCollection(collection.id, imageId)
+      if (res.data.success) {
+        collection.containsImage = false
+        collection.itemCount = Math.max(0, (collection.itemCount || 0) - 1)
+        notificationStore.showNotification('Cancel to Collection Successfully!', 'success')
+      }
+    } else {
+      // Add
+      const res = await imageApi.addToCollection(collection.id, imageId)
+      if (res.data.success) {
+        collection.containsImage = true
+        collection.itemCount = (collection.itemCount || 0) + 1
+        notificationStore.showNotification('Add to Collection Successfully!', 'success')
+        // Manually update collected state to true if added to any collection
+        collected.value = true
+      }
+    }
+    
+    // Check if any collection still contains the image
+    const hasCollections = collections.value.some(c => c.containsImage)
+    
+    // Only refresh details if no collections contain the image anymore (to update Save button state correctly)
+    if (!hasCollections) {
+      await fetchDetails(true)
     }
   } catch (error) {
-    console.error('Failed to add to collection', error)
-    notificationStore.showNotification('Failed to add to collection', 'error')
+    console.error('Failed to toggle collection status', error)
+    notificationStore.showNotification('Operation failed', 'error')
   }
 }
 
@@ -133,6 +157,12 @@ const toggleCollection = async () => {
         collected.value ? 'Added to My Collection' : 'Removed from My Collection',
         'success'
       )
+      
+      // If added to collection, open drawer and fetch collections to show "My Collection" as selected
+      if (collected.value) {
+        isDrawerOpen.value = true
+        await fetchCollections()
+      }
     }
   } catch (error) {
     console.error('Failed to toggle collection', error)
@@ -222,13 +252,13 @@ onMounted(() => {
             <DrawerTrigger as-child>
               <Button variant="outline" class="w-full" @click="fetchCollections">
                 <FolderPlus class="w-4 h-4 mr-2" />
-                Move to Collection
+                Change to Collection
               </Button>
             </DrawerTrigger>
             <DrawerContent>
               <div class="mx-auto w-full max-w-4xl h-[50vh] flex flex-col p-6">
                 <DrawerHeader class="text-left px-0">
-                  <DrawerTitle class="text-2xl">Move to Collection</DrawerTitle>
+                  <DrawerTitle class="text-2xl">Change to Collection</DrawerTitle>
                   <DrawerDescription>Select a collection to add this image to.</DrawerDescription>
                 </DrawerHeader>
                 
@@ -258,15 +288,17 @@ onMounted(() => {
                   <Card
                     v-for="col in collections"
                     :key="col.id"
-                    class="cursor-pointer hover:shadow-md hover:scale-102 hover:bg-pink-50 transition-all duration-200 border border-blue-100 hover:border-[#ffacd3]/50 bg-white dark:bg-gray-800"
-                    @click="addToCollection(col.id, col.name)"
+                    class="cursor-pointer hover:shadow-md transition-all duration-200 border bg-white dark:bg-gray-800"
+                    :class="{ 'border-primary bg-primary/5': col.containsImage, 'border-gray-200 hover:border-primary/50': !col.containsImage }"
+                    @click="toggleCollectionImage(col)"
                   >
                     <CardContent class="p-2 flex items-center space-x-2">
-                      <div class="p-1 bg-primary/10 rounded-full">
-                        <Folder class="w-4 h-4 text-primary" />
+                      <div class="p-1 rounded-full" :class="{ 'bg-primary text-white': col.containsImage, 'bg-primary/10 text-primary': !col.containsImage }">
+                        <Check v-if="col.containsImage" class="w-4 h-4" />
+                        <Folder v-else class="w-4 h-4" />
                       </div>
-                      <div>
-                        <h3 class="font-medium text-sm">{{ col.name }}</h3>
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-medium text-sm truncate">{{ col.name }}</h3>
                         <p class="text-xs text-muted-foreground">{{ col.itemCount || 0 }} items</p>
                       </div>
                     </CardContent>
@@ -281,7 +313,7 @@ onMounted(() => {
           <CardContent class="p-6 space-y-4">
             <div class="flex justify-between items-center py-2 border-b">
               <span class="text-gray-500">Uploader</span>
-              <span class="font-medium">{{ image.uploader || 'Unknown' }}</span>
+              <span class="font-medium">{{ image.uploaderName || image.uploader || 'Unknown' }}</span>
             </div>
             <div class="flex justify-between items-center py-2 border-b">
               <span class="text-gray-500">Uploaded</span>
