@@ -90,6 +90,7 @@ async function onCaptchaSuccess(code: string) {
       name: response.data.user.username,
       email: response.data.user.email,
       avatar: response.data.user.avatarUrl,
+      rights: response.data.user.userRights,
     };
 
     // 将后端返回的用户信息存入 Pinia 全局状态
@@ -116,14 +117,14 @@ async function onCaptchaSuccess(code: string) {
 </script>
 
 <template>
-<div class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat p-4" style="background-image: url('/bg3.png')">  
+<div class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat p-4" style="background-image: url('/bg5.png')">  
   <div class="absolute inset-0 bg-black/40"></div>
-    <Card class="w-full max-w-sm relative z-10 bg-zinc-950 backdrop-blur-sm border border-white/20 text-white md:transform md:-translate-x-35">
+    <Card class="w-full max-w-sm relative z-10 bg-zinc-950/10 backdrop-blur-md border border-white/10 text-white shadow-2xl">
       <CardHeader>
         <CardTitle class="text-2xl text-center">
           Welcome
         </CardTitle>
-        <CardDescription>
+        <CardDescription class="text-center text-zinc-400">
           Please enter your email and password to log in to your account.
         </CardDescription>
         <p v-if="apiError" class="text-sm text-red-400 text-center">{{ apiError }}</p>
@@ -131,38 +132,38 @@ async function onCaptchaSuccess(code: string) {
       <CardContent class="grid gap-4">
         <div class="grid gap-2">
           <Label for="email">Email</Label>
-          <Input id="email" v-model="email" type="email" placeholder="m@example.com" required />
+          <Input id="email" v-model="email" type="email" placeholder="m@example.com" required class="bg-zinc-900/10 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-indigo-300/30" />
           <p v-if="emailError" class="text-sm text-red-400">{{ emailError }}</p>
         </div>
         <div class="grid gap-2">
           <Label for="password">Password</Label>
-          <Input id="password" v-model="password" type="password" placeholder="Enter your password" required />
+          <Input id="password" v-model="password" type="password" placeholder="Enter your password" required class="bg-zinc-900/10 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-indigo-300/30" />
           <p v-if="passwordError" class="text-sm text-red-400">{{ passwordError }}</p>
         </div>
       </CardContent>
       <CardFooter class="grid gap-4 justify-items-center">
-        <Button class="w-full bg-gray-700/50 hover:bg-gray-700/80 active:bg-gray-600 text-white shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-indigo-300/50 transition duration-150 transform hover:-translate-y-0.5" 
+        <Button class="w-full bg-indigo-600/80 hover:bg-indigo-500/80 text-white shadow-lg hover:shadow-indigo-500/20 transition-all duration-200" 
                 @click="handleLogin"
                 :disabled="pendingLogin">
           Log in
         </Button>
         <div class="relative w-full my-2">
           <div class="absolute inset-0 flex items-center">
-            <span class="w-full border-t border-white/20"></span>
+            <span class="w-full border-t border-white/10"></span>
           </div>
           <div class="relative flex justify-center text-xs uppercase">
-            <span class="bg-zinc-950 px-2 text-zinc-400">
+            <span class="bg-transparent px-2 text-zinc-400">
               or
             </span>
           </div>
         </div>
         <Button variant="outline" 
-                class="w-full bg-zinc-900 hover:bg-zinc-800 hover:text-white active:bg-zinc-700 text-white shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-indigo-300/50 transition duration-150 transform hover:-translate-y-0.5" 
+                class="w-full bg-transparent border-white/10 hover:bg-white/5 text-zinc-300 hover:text-white transition-colors" 
                 @click="router.push('/auth/forgot')">
           Forgot Password?
         </Button>
 
-        <Label>Don't have an account? <RouterLink to="/signup" class="text-indigo-400 hover:underline">Sign up</RouterLink></Label>
+        <Label class="text-zinc-400">Don't have an account? <RouterLink to="/signup" class="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors">Sign up</RouterLink></Label>
       </CardFooter>
     </Card>
 

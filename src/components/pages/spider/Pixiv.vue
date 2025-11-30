@@ -1,5 +1,6 @@
 、<script setup lang="ts">
 import { ref, onUnmounted, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import apiClient from '@/api'
 
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 
 // --- 左侧控制区的状态 ---
+const router = useRouter()
 const cookie = ref('')
 const userId = ref('')
 const isLoading = ref(false)
@@ -203,7 +205,13 @@ function handleStopCrawling() {
 
 <template>
   <div class="p-6 h-full flex flex-col">
-    <h1 class="text-2xl font-bold mb-6">Pixiv Spider</h1>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Pixiv Spider</h1>
+      <Button variant="link" 
+              class="text-muted-foreground underline hover:text-yellow-600" @click="router.push({ name: 'docs-spider-pixiv' })">
+        Help
+      </Button>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
       <!-- 左侧：交互区 -->
