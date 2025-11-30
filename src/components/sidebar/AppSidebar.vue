@@ -83,7 +83,11 @@ const data = computed(() => ({
 <template>
   <Sidebar v-bind="props" class="overflow-hidden">
     <SidebarHeader>
-      <SidebarBrand :icon="Snowflake" title="Vue System" />
+      <SidebarBrand title="Lythos">
+        <template #icon>
+          <span class="text-lg font-bold">L</span>
+        </template>
+      </SidebarBrand>
     </SidebarHeader>
 
     <SidebarContent class="flex-1">
