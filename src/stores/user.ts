@@ -10,7 +10,7 @@ export const useUserStore = defineStore('user', () => {
     const userName = ref<string | null>(null)
     const userEmail = ref<string | null>(null)
     const userAvatar = ref<string | null>(null)
-    const userRights = ref<{ admin: boolean }>({ admin: false })
+    const userRights = ref<{ admin: boolean; uploadVerified?: boolean; uploadSizeLimit?: number }>({ admin: false })
     const sessionChecked = ref(false) 
 
     const isLoggedIn = computed(() => !!userId.value)
@@ -21,7 +21,7 @@ export const useUserStore = defineStore('user', () => {
       userName.value = 'Dev User';
       userEmail.value = 'dev@example.com';
       userAvatar.value = '/avatars/shadcn.jpg';
-      userRights.value = { admin: true };
+      userRights.value = { admin: true, uploadVerified: true, uploadSizeLimit: 10485760 };
       sessionChecked.value = true; 
     }
 
@@ -56,7 +56,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     // 设置用户信息并更新登录状态
-    function setUser(userData: { id: string; name: string; email: string; avatar?: string | null; rights?: { admin: boolean } }) {
+    function setUser(userData: { id: string; name: string; email: string; avatar?: string | null; rights?: any }) {
         userId.value = userData.id
         userName.value = userData.name
         userEmail.value = userData.email

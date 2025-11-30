@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import apiClient from '@/api'
 import { useNotificationStore } from '@/stores/notification'
+import { useUserStore } from '@/stores/user'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
@@ -28,6 +29,7 @@ interface Image {
 }
 
 const notificationStore = useNotificationStore()
+const userStore = useUserStore()
 const images = ref<Image[]>([])
 const loading = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -50,7 +52,11 @@ const fetchImages = async () => {
 
 const checkUploadPermission = async () => {
   try {
-    await apiClient.get('/user/upload-permission')
+    const response = await apiClient.get('/user/upload-permission')
+    // Update store with latest limit if available
+    if (response.data.uploadSizeLimit) {
+      userStore.userRights.uploadSizeLimit = response.data.uploadSizeLimit
+    }
     return true
   } catch (error: any) {
     if (error.response?.status === 403) {
@@ -72,7 +78,15 @@ const handleFileSelect = async (event: Event) => {
     }
     
     const files = Array.from(target.files)
-    uploadQueue.value.push(...files)
+    const limit = userStore.userRights.uploadSizeLimit || 10485760 // Default 10MB
+    
+    for (const file of files) {
+      if (file.size > limit) {
+        notificationStore.showNotification(`File "${file.name}" exceeds size limit of ${(limit / (1024 * 1024)).toFixed(0)}MB`, 'error')
+        continue
+      }
+      uploadQueue.value.push(file)
+    }
     target.value = '' // Reset input
   }
 }
@@ -121,12 +135,14 @@ const deleteImage = async (id: string) => {
   }
 }
 
-const triggerFileInput = () => {
+const triggerFileInput = async () => {
   fileInput.value?.click()
 }
 
 onMounted(() => {
   fetchImages()
+  // Also check permission on mount to update limits
+  checkUploadPermission()
 })
 </script>
 
@@ -160,7 +176,10 @@ onMounted(() => {
       <CardContent>
         <div class="space-y-2">
           <div v-for="(file, index) in uploadQueue" :key="index" class="flex items-center justify-between p-2 border rounded">
-            <span class="text-sm truncate">{{ file.name }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-sm truncate max-w-[200px]">{{ file.name }}</span>
+              <span class="text-xs text-muted-foreground">({{ (file.size / (1024 * 1024)).toFixed(2) }} MB)</span>
+            </div>
             <Button variant="ghost" size="sm" @click="removeFileFromQueue(index)">
               <Trash2 class="h-4 w-4 text-red-500" />
             </Button>
