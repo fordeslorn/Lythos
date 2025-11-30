@@ -1,4 +1,4 @@
-# Vue3-system
+# Lythos
 
 The project is a system built with Vue 3. Just used for learning purposes. 
 
@@ -7,10 +7,6 @@ It contains login, register pages and other pages to be developed.
 Used the `shadcn-vue` UI.
 
 ## Some Pages
-**Login**
-![](docs/img/login.png)
-**Register**
-![](docs/img/register.png)
 **User Settings**
 ![](docs/img/user-settings.png)
 

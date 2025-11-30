@@ -10,7 +10,13 @@ export const useUserStore = defineStore('user', () => {
     const userName = ref<string | null>(null)
     const userEmail = ref<string | null>(null)
     const userAvatar = ref<string | null>(null)
-    const userRights = ref<{ admin: boolean; uploadVerified?: boolean; uploadSizeLimit?: number }>({ admin: false })
+    const userRights = ref<{ 
+      admin: boolean; 
+      uploadVerified?: boolean; 
+      uploadSizeLimit?: number;
+      uploadLimit?: number;
+      deleteLimit?: number;
+    }>({ admin: false })
     const sessionChecked = ref(false) 
 
     const isLoggedIn = computed(() => !!userId.value)
@@ -21,7 +27,13 @@ export const useUserStore = defineStore('user', () => {
       userName.value = 'Dev User';
       userEmail.value = 'dev@example.com';
       userAvatar.value = '/avatars/shadcn.jpg';
-      userRights.value = { admin: true, uploadVerified: true, uploadSizeLimit: 10485760 };
+      userRights.value = { 
+        admin: true, 
+        uploadVerified: true, 
+        uploadSizeLimit: 10485760,
+        uploadLimit: 100,
+        deleteLimit: 100
+      };
       sessionChecked.value = true; 
     }
 

@@ -163,29 +163,29 @@ function goBack() {
 </script>
 
 <template>
-  <div class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat p-4" style="background-image: url('/bg3.png')">
+  <div class="relative min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat p-4" style="background-image: url('/bg5.png')">
     <div class="absolute inset-0 bg-black/40"></div>
-    <Card class="w-full max-w-sm relative z-10 bg-zinc-950 backdrop-blur-sm border border-white/20 text-white md:transform md:-translate-x-35">
+    <Card class="w-full max-w-sm relative z-10 bg-zinc-950/10 backdrop-blur-md border border-white/10 text-white shadow-2xl">
       <!-- Step 1: Enter Email -->
       <template v-if="step === 1">
         <CardHeader>
           <CardTitle class="text-2xl text-center">Forgot Password</CardTitle>
-          <CardDescription class="text-center">Enter your email to receive a verification code.</CardDescription>
+          <CardDescription class="text-center text-zinc-400">Enter your email to receive a verification code.</CardDescription>
         </CardHeader>
         <CardContent class="grid gap-4">
           <div class="grid gap-2">
             <Label for="email">Email</Label>
-            <Input id="email" v-model="email" type="email" placeholder="m@example.com" required />
+            <Input id="email" v-model="email" type="email" placeholder="m@example.com" required class="bg-zinc-900/10 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-indigo-300/30" />
             <p v-if="emailError" class="text-sm text-red-400">{{ emailError }}</p>
           </div>
         </CardContent>
         <CardFooter class="grid gap-4">
           <Button @click="handleRequestCode" 
                   :disabled="isLoading" 
-                  class="w-full bg-gray-700/50 hover:bg-gray-700/80 active:bg-gray-600 text-white shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-indigo-300/50 transition duration-150 transform hover:-translate-y-0.5">
+                  class="w-full bg-indigo-600/80 hover:bg-indigo-500/80 text-white shadow-lg hover:shadow-indigo-500/20 transition-all duration-200">
             Send Code
           </Button>
-          <Button variant="link" @click="router.push('/login')" class="text-indigo-400">
+          <Button variant="link" @click="router.push('/login')" class="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors">
             Back to Login
           </Button>
         </CardFooter>
@@ -195,36 +195,36 @@ function goBack() {
       <template v-else>
         <CardHeader>
           <CardTitle class="text-2xl text-center">Reset Password</CardTitle>
-          <CardDescription class="text-center">Please enter the verification code and new password.</CardDescription>
+          <CardDescription class="text-center text-zinc-400">Please enter the verification code and new password.</CardDescription>
         </CardHeader>
         <CardContent class="grid gap-4">
           <div class="grid gap-2">
             <Label for="reset-email">Email</Label>
-            <Input id="reset-email" v-model="email" type="email" readonly disabled />
+            <Input id="reset-email" v-model="email" type="email" readonly disabled class="bg-zinc-900/30 border-white/5 text-zinc-400" />
           </div>
           <div class="grid gap-2">
             <Label for="code">Verification Code</Label>
-            <Input id="code" v-model="verificationCode" type="text" placeholder="6-digit code" required />
+            <Input id="code" v-model="verificationCode" type="text" placeholder="6-digit code" required class="bg-zinc-900/10 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-indigo-300/30" />
             <p v-if="verificationCodeError" class="text-sm text-red-400">{{ verificationCodeError }}</p>
           </div>
           <div class="grid gap-2">
             <Label for="new-password">New Password</Label>
-            <Input id="new-password" v-model="password" type="password" placeholder="Please enter your new password" required />
+            <Input id="new-password" v-model="password" type="password" placeholder="Please enter your new password" required class="bg-zinc-900/10 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-indigo-300/30" />
             <p v-if="passwordError" class="text-sm text-red-400">{{ passwordError }}</p>
           </div>
           <div class="grid gap-2">
             <Label for="confirm-new-password">Confirm New Password</Label>
-            <Input id="confirm-new-password" v-model="confirmPassword" type="password" placeholder="Please confirm your new password" required />
+            <Input id="confirm-new-password" v-model="confirmPassword" type="password" placeholder="Please confirm your new password" required class="bg-zinc-900/10 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-indigo-300/30" />
             <p v-if="confirmPasswordError" class="text-sm text-red-400">{{ confirmPasswordError }}</p>
           </div>
         </CardContent>
         <CardFooter class="grid gap-4">
           <Button @click="handleResetPassword" 
                   :disabled="isLoading" 
-                  class="w-full bg-gray-700/50 hover:bg-gray-700/80 active:bg-gray-600 text-white shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-indigo-300/50 transition duration-150 transform hover:-translate-y-0.5">
+                  class="w-full bg-indigo-600/80 hover:bg-indigo-500/80 text-white shadow-lg hover:shadow-indigo-500/20 transition-all duration-200">
             Confirm Reset
           </Button>
-          <Button variant="link" @click="goBack" class="text-indigo-400">
+          <Button variant="link" @click="goBack" class="text-indigo-400 hover:text-indigo-300 hover:underline transition-colors">
             Back
           </Button>
         </CardFooter>

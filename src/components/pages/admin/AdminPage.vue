@@ -213,7 +213,7 @@ onMounted(() => {
                 <HoverCard>
                   <HoverCardTrigger as-child>
                     <SheetTrigger as-child>
-                      <Button variant="outline" size="sm">Configuration</Button>
+                      <Button variant="outline" class="sm border-blue-100 hover:bg-blue-50">Configuration</Button>
                     </SheetTrigger>
                   </HoverCardTrigger>
                   <HoverCardContent class="w-80" v-if="activeUserId !== user.id">
@@ -298,7 +298,7 @@ onMounted(() => {
                             variant="outline" 
                             size="sm" 
                             @click="openSizeLimitPopover(user.userRights.uploadSizeLimit)"
-                            class="transition-colors duration-300"
+                            class="transition-colors duration-300 border-blue-100 hover:bg-blue-100"
                             :class="{
                               'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': successFeedback[`${user.id}-uploadSizeLimit`]
                             }"
@@ -341,7 +341,7 @@ onMounted(() => {
                             variant="outline" 
                             size="sm" 
                             @click="openUploadLimitPopover(user.userRights.uploadLimit)"
-                            class="transition-colors duration-300"
+                            class="transition-colors duration-300 border-blue-100 hover:bg-blue-100"
                             :class="{
                               'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': successFeedback[`${user.id}-uploadLimit`]
                             }"
@@ -380,7 +380,7 @@ onMounted(() => {
                             variant="outline" 
                             size="sm" 
                             @click="openDeleteLimitPopover(user.userRights.deleteLimit)"
-                            class="transition-colors duration-300"
+                            class="transition-colors duration-300 border-blue-100 hover:bg-blue-100"
                             :class="{
                               'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': successFeedback[`${user.id}-deleteLimit`]
                             }"
