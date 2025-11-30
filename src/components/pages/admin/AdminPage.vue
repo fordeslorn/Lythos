@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/popover'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { RefreshCw, ChevronDown } from 'lucide-vue-next'
 
 interface User {
@@ -50,6 +51,8 @@ interface User {
     admin: boolean
     uploadVerified: boolean
     uploadSizeLimit: number
+    uploadLimit: number
+    deleteLimit: number
   }
 }
 
@@ -57,6 +60,8 @@ const users = ref<User[]>([])
 const loading = ref(false)
 const activeUserId = ref<string | null>(null)
 const tempSizeLimit = ref<number>(10) // Temporary storage for the input in Popover
+const tempUploadLimit = ref<number>(100)
+const tempDeleteLimit = ref<number>(50)
 const successFeedback = ref<Record<string, boolean>>({})
 
 const fetchUsers = async () => {
@@ -68,7 +73,9 @@ const fetchUsers = async () => {
         ...u,
         userRights: {
           ...u.userRights,
-          uploadSizeLimit: u.userRights.uploadSizeLimit || 10485760 // Default 10MB if null/0
+          uploadSizeLimit: u.userRights.uploadSizeLimit || 10485760, // Default 10MB
+          uploadLimit: u.userRights.uploadLimit || 100,
+          deleteLimit: u.userRights.deleteLimit || 50
         }
       }))
     }
@@ -104,18 +111,61 @@ const updateUploadSizeLimit = async (user: User) => {
     if (response.data.success) {
       user.userRights.uploadSizeLimit = limitBytes
       // Trigger visual feedback
-      successFeedback.value[user.id] = true
-      setTimeout(() => {
-        successFeedback.value[user.id] = false
-      }, 1000)
+      triggerFeedback(user.id, 'uploadSizeLimit')
     }
   } catch (error) {
     console.error('Failed to update upload size limit:', error)
   }
 }
 
+const updateUploadLimit = async (user: User) => {
+  try {
+    const response = await apiClient.post('/admin/upload-limit', {
+      userId: user.id,
+      limit: tempUploadLimit.value
+    })
+    if (response.data.success) {
+      user.userRights.uploadLimit = tempUploadLimit.value
+      triggerFeedback(user.id, 'uploadLimit')
+    }
+  } catch (error) {
+    console.error('Failed to update upload limit:', error)
+  }
+}
+
+const updateDeleteLimit = async (user: User) => {
+  try {
+    const response = await apiClient.post('/admin/delete-limit', {
+      userId: user.id,
+      limit: tempDeleteLimit.value
+    })
+    if (response.data.success) {
+      user.userRights.deleteLimit = tempDeleteLimit.value
+      triggerFeedback(user.id, 'deleteLimit')
+    }
+  } catch (error) {
+    console.error('Failed to update delete limit:', error)
+  }
+}
+
+const triggerFeedback = (userId: string, type: string) => {
+  const key = `${userId}-${type}`
+  successFeedback.value[key] = true
+  setTimeout(() => {
+    successFeedback.value[key] = false
+  }, 1000)
+}
+
 const openSizeLimitPopover = (currentLimit: number) => {
   tempSizeLimit.value = Math.round(currentLimit / (1024 * 1024))
+}
+
+const openUploadLimitPopover = (currentLimit: number) => {
+  tempUploadLimit.value = currentLimit
+}
+
+const openDeleteLimitPopover = (currentLimit: number) => {
+  tempDeleteLimit.value = currentLimit
 }
 
 onMounted(() => {
@@ -141,7 +191,7 @@ onMounted(() => {
             <TableHead class="text-center">Username</TableHead>
             <TableHead class="text-center">Email</TableHead>
             <TableHead class="text-center">ID</TableHead>
-            <TableHead class="text-center">Rights</TableHead>
+            <TableHead class="text-center">Rights & Billing</TableHead>
             <TableHead class="text-center">Role</TableHead>
           </TableRow>
         </TableHeader>
@@ -188,18 +238,30 @@ onMounted(() => {
                             {{ (user.userRights?.uploadSizeLimit / (1024 * 1024)).toFixed(0) }} MB
                           </span>
                         </p>
+                        <Separator class="my-2" />
+                        <h4 class="text-sm font-semibold">Billing Info</h4>
+                        <p class="text-sm">
+                          Upload Limit: 
+                          <span class="text-muted-foreground">{{ user.userRights?.uploadLimit }} / month</span>
+                        </p>
+                        <p class="text-sm">
+                          Delete Limit: 
+                          <span class="text-muted-foreground">{{ user.userRights?.deleteLimit }} / month</span>
+                        </p>
                       </div>
                     </div>
                   </HoverCardContent>
                 </HoverCard>
                 <SheetContent>
                   <SheetHeader class="p-6">
-                    <SheetTitle>Configuration User's Rights</SheetTitle>
+                    <SheetTitle>User Configuration</SheetTitle>
                     <SheetDescription>
-                      User: {{ user.username }}
+                      User: {{ user.username }}<br />
+                      ID: {{ user.id }}
                     </SheetDescription>
                   </SheetHeader>
                   <div class="p-6">
+                    <h4 class="font-medium mb-4">Rights</h4>
                     <div class="flex items-center justify-between border-b pb-4 mb-4">
                       <span class="text-sm font-medium ">Upload Verification</span>
                       <DropdownMenu>
@@ -238,7 +300,7 @@ onMounted(() => {
                             @click="openSizeLimitPopover(user.userRights.uploadSizeLimit)"
                             class="transition-colors duration-300"
                             :class="{
-                              'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': successFeedback[user.id]
+                              'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': successFeedback[`${user.id}-uploadSizeLimit`]
                             }"
                           >
                             {{ (user.userRights.uploadSizeLimit / (1024 * 1024)).toFixed(0) }} MB
@@ -263,6 +325,87 @@ onMounted(() => {
                               <span class="text-sm text-muted-foreground">MB</span>
                             </div>
                             <Button size="sm" @click="updateUploadSizeLimit(user)">Save</Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <br /><br />
+                    <h4 class="font-medium mb-4">Billing</h4>
+
+                    <div class="flex items-center justify-between border-b pb-4 mb-4">
+                      <span class="text-sm font-medium">Upload Limit</span>
+                      <Popover>
+                        <PopoverTrigger as-child>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            @click="openUploadLimitPopover(user.userRights.uploadLimit)"
+                            class="transition-colors duration-300"
+                            :class="{
+                              'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': successFeedback[`${user.id}-uploadLimit`]
+                            }"
+                          >
+                            {{ user.userRights.uploadLimit }} / month
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-80">
+                          <div class="grid gap-4">
+                            <div class="space-y-2">
+                              <h4 class="font-medium leading-none">Upload Limit</h4>
+                              <p class="text-sm text-muted-foreground">
+                                Set the monthly upload limit for this user.
+                              </p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                              <Label for="uploadLimit">Limit</Label>
+                              <Input
+                                id="uploadLimit"
+                                type="number"
+                                class="h-8"
+                                v-model="tempUploadLimit"
+                              />
+                            </div>
+                            <Button size="sm" @click="updateUploadLimit(user)">Save</Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div class="flex items-center justify-between border-b pb-4 mb-4">
+                      <span class="text-sm font-medium">Delete Limit</span>
+                      <Popover>
+                        <PopoverTrigger as-child>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            @click="openDeleteLimitPopover(user.userRights.deleteLimit)"
+                            class="transition-colors duration-300"
+                            :class="{
+                              'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-900': successFeedback[`${user.id}-deleteLimit`]
+                            }"
+                          >
+                            {{ user.userRights.deleteLimit }} / month
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent class="w-80">
+                          <div class="grid gap-4">
+                            <div class="space-y-2">
+                              <h4 class="font-medium leading-none">Delete Limit</h4>
+                              <p class="text-sm text-muted-foreground">
+                                Set the monthly delete limit for this user.
+                              </p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                              <Label for="deleteLimit">Limit</Label>
+                              <Input
+                                id="deleteLimit"
+                                type="number"
+                                class="h-8"
+                                v-model="tempDeleteLimit"
+                              />
+                            </div>
+                            <Button size="sm" @click="updateDeleteLimit(user)">Save</Button>
                           </div>
                         </PopoverContent>
                       </Popover>
