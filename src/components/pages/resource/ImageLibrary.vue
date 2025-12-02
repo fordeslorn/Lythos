@@ -1,8 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import { imageApi } from '@/api'
-import { useRouter } from 'vue-router'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationFirst,
+  PaginationLast,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 
 const router = useRouter()
 const images = ref<any[]>([])
@@ -67,7 +77,12 @@ const getThumbUrl = (id: string) => {
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-6">Image Library</h1>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    
+    <div v-if="loading && images.length === 0" class="flex justify-center items-center h-64">
+      <span class="text-gray-400">Loading...</span>
+    </div>
+
+    <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
       <Card 
         v-for="img in images" 
         :key="img.id" 
@@ -85,11 +100,28 @@ const getThumbUrl = (id: string) => {
       </Card>
     </div>
     
-    <!-- Loading trigger -->
-    <div ref="observerTarget" class="h-10 flex justify-center items-center mt-4">
-      <span v-if="loading" class="text-gray-400">Loading...</span>
-      <span v-else-if="!hasMore && images.length > 0" class="text-gray-400">No more images</span>
-      <span v-else-if="!loading && images.length === 0" class="text-gray-400">No images found</span>
+    <!-- Pagination -->
+    <div v-if="total > limit" class="flex justify-center pb-8">
+      <Pagination v-slot="{ page }" :total="total" :sibling-count="1" show-edges :default-page="1" :items-per-page="limit" @update:page="handlePageChange">
+        <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
+          <PaginationFirst />
+          <PaginationPrevious />
+
+          <template v-for="(item, index) in items">
+            <PaginationItem v-if="item.type === 'page'" :key="index" :value="item.value" :is-active="item.value === page">
+              {{ item.value }}
+            </PaginationItem>
+            <PaginationEllipsis v-else :key="item.type" :index="index" />
+          </template>
+
+          <PaginationNext />
+          <PaginationLast />
+        </PaginationContent>
+      </Pagination>
+    </div>
+    
+    <div v-if="!loading && images.length === 0" class="text-center text-gray-400 py-12">
+      No images found
     </div>
   </div>
 </template>
