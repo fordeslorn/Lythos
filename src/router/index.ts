@@ -27,6 +27,8 @@ import DocsPage from '@/components/pages/document/DocsPage.vue'
 import MarkdownViewer from '@/components/pages/document/MarkdownViewer.vue'
 import SpiderDocs from '@/components/pages/document/SpiderDocs.vue'
 import AdminPage from '@/components/pages/admin/AdminPage.vue'
+import SendNotification from '@/components/pages/admin/SendNotification.vue'
+import NotificationDetail from '@/components/pages/user/NotificationDetail.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +71,12 @@ const router = createRouter({
           path: 'admin',
           name: 'admin',
           component: AdminPage,
+          meta: { requiresAdmin: true }
+        },
+        {
+          path: 'admin/send-notification',
+          name: 'send-notification',
+          component: SendNotification,
           meta: { requiresAdmin: true }
         },
         {
@@ -137,6 +145,7 @@ const router = createRouter({
             { path: 'images', name: 'user-images', component: MyUploadImages },
             { path: 'settings', name: 'user-settings', component: UserSettings },
             { path: 'notifications', name: 'user-notifications', component: Notifications },
+            { path: 'notifications/:id', name: 'user-notification-detail', component: NotificationDetail },
           ]
         },
       ]

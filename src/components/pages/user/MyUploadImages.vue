@@ -19,6 +19,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Upload, MoreHorizontal, Trash2, Image as ImageIcon } from 'lucide-vue-next'
 
 interface Image {
@@ -35,6 +43,8 @@ const loading = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadQueue = ref<File[]>([])
 const isUploading = ref(false)
+const isDeleteDialogOpen = ref(false)
+const imageToDelete = ref<string | null>(null)
 
 const fetchImages = async () => {
   loading.value = true
@@ -121,14 +131,21 @@ const uploadImages = async () => {
   }
 }
 
-const deleteImage = async (id: string) => {
-  if (!confirm('Are you sure you want to delete this image?')) return
+const openDeleteDialog = (id: string) => {
+  imageToDelete.value = id
+  isDeleteDialogOpen.value = true
+}
+
+const confirmDelete = async () => {
+  if (!imageToDelete.value) return
 
   try {
-    await apiClient.delete(`/user/images/${id}`)
+    await apiClient.delete(`/user/images/${imageToDelete.value}`)
     notificationStore.showNotification('Image deleted successfully', 'success')
     // Refresh the list
     await fetchImages()
+    isDeleteDialogOpen.value = false
+    imageToDelete.value = null
   } catch (error) {
     console.error('Delete failed:', error)
     notificationStore.showNotification('Failed to delete image', 'error')
@@ -233,7 +250,7 @@ onMounted(() => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem @click="deleteImage(image.id)" class="text-red-600">
+                  <DropdownMenuItem @click="openDeleteDialog(image.id)" class="text-red-600">
                     <Trash2 class="mr-2 h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
@@ -249,5 +266,21 @@ onMounted(() => {
         </TableBody>
       </Table>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <Dialog v-model:open="isDeleteDialogOpen">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this image? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" @click="isDeleteDialogOpen = false">Cancel</Button>
+          <Button variant="destructive" @click="confirmDelete">Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
