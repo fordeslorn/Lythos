@@ -23,9 +23,9 @@ import SettingsPage from '@/components/pages/settings/SettingsPage.vue'
 import SpidersPage from '@/components/pages/spider/SpidersPage.vue'
 import NcMusic from '@/components/pages/spider/NcMusic.vue'
 import Pixiv from '@/components/pages/spider/Pixiv.vue'
-import DocsPage from '@/components/pages/docs/DocsPage.vue'
-import MarkdownViewer from '@/components/pages/docs/MarkdownViewer.vue'
-import SpiderDocs from '@/components/pages/docs/SpiderDocs.vue'
+import DocsPage from '@/components/pages/document/DocsPage.vue'
+import MarkdownViewer from '@/components/pages/document/MarkdownViewer.vue'
+import SpiderDocs from '@/components/pages/document/SpiderDocs.vue'
 import AdminPage from '@/components/pages/admin/AdminPage.vue'
 
 const router = createRouter({
@@ -89,7 +89,7 @@ const router = createRouter({
           ]
         },
         {
-          path: 'docs',
+          path: 'document',
           component: DocsPage,
           children: [
             { path: '', redirect: { name: 'docs-introduction' } },

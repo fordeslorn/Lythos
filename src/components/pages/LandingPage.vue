@@ -49,22 +49,22 @@ const slides = [
   { 
     title: 'Useful Sites', 
     description: 'Curated collection of essential websites and resources.',
-    image: '/useful-site.png'  
+    image: '/landingpage/useful-site.png'  
   },
   { 
     title: 'Image Spider', 
     description: 'Automated fast image crawling tools.',
-    image: '/img-spider.png' 
+    image: '/landingpage/img-spider.png' 
   },
   { 
     title: 'User Account', 
     description: 'Manage your profile, settings, and account preferences.',
-    image: '/user-account.png'  
+    image: '/landingpage/user-account.png'  
   },
   { 
     title: 'Site Documentation', 
     description: 'Comprehensive guides and API documentation.',
-    image: '/site-docs.png' 
+    image: '/landingpage/site-docs.png' 
   }
 ]
 

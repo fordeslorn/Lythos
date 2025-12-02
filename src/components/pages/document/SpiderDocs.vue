@@ -9,13 +9,13 @@ const guides = [
   {
     title: 'Pixiv Spider Guide',
     description: 'Learn how to configure and use the Pixiv crawler to download images.',
-    path: '/docs/spider/pixiv',
+    path: '/document/spider/pixiv',
     icon: Rocket
   },
   {
     title: 'NcMusic Spider Guide',
     description: 'Documentation for the NetEase Cloud Music crawler (Coming Soon).',
-    path: '/docs/spider/nc-music',
+    path: '/document/spider/nc-music',
     icon: Music
   }
 ]
