@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onActivated, nextTick } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import { imageApi } from '@/api'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
@@ -14,25 +14,25 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 
+defineOptions({
+  name: 'ImageLibrary'
+})
+
 const router = useRouter()
 const images = ref<any[]>([])
 const loading = ref(false)
-const page = ref(0)
-const limit = 20
-const hasMore = ref(true)
+const page = ref(1)
+const limit = 80
+const total = ref(0)
 
 const loadImages = async () => {
-  if (loading.value || !hasMore.value) return
   loading.value = true
   try {
-    const res = await imageApi.getImages({ limit, offset: page.value * limit })
+    // API uses 0-based offset
+    const res = await imageApi.getImages({ limit, offset: (page.value - 1) * limit })
     if (res.data.success) {
-      const newImages = res.data.images || []
-      if (newImages.length < limit) {
-        hasMore.value = false
-      }
-      images.value.push(...newImages)
-      page.value++
+      images.value = res.data.images || []
+      total.value = res.data.total || 0
     }
   } catch (error) {
     console.error('Failed to load images', error)
@@ -41,27 +41,15 @@ const loadImages = async () => {
   }
 }
 
-// Intersection Observer for infinite scroll
-const observerTarget = ref<HTMLElement | null>(null)
-let observer: IntersectionObserver | null = null
-
-onMounted(() => {
-  loadImages()
-  
-  observer = new IntersectionObserver((entries) => {
-    if (entries && entries[0] && entries[0].isIntersecting) {
-      loadImages()
-    }
-  }, { rootMargin: '200px' })
-  
-  if (observerTarget.value) {
-    observer.observe(observerTarget.value)
-  }
-})
-
-onUnmounted(() => {
-  if (observer) observer.disconnect()
-})
+const handlePageChange = (newPage: number) => {
+  page.value = newPage
+  loadImages().then(() => {
+    nextTick(() => {
+      const container = document.querySelector('main') || window
+      container.scrollTo({ top: 0, behavior: 'smooth' })
+    })
+  })
+}
 
 const goToDetail = (id: string) => {
   router.push(`/resource/image-library/${id}`)
@@ -69,9 +57,47 @@ const goToDetail = (id: string) => {
 
 // Helper to get thumbnail URL
 const getThumbUrl = (id: string) => {
-  // VITE_API_BASE_URL is http://localhost:8080/api/v1
   return `${import.meta.env.VITE_API_BASE_URL}/images/${id}?mode=thumb`
 }
+
+// Scroll Restoration Logic
+onBeforeRouteLeave((to, from, next) => {
+  const container = document.querySelector('main')
+  const scrollTop = container ? container.scrollTop : window.scrollY
+  sessionStorage.setItem('image-library-scroll', scrollTop.toString())
+  sessionStorage.setItem('image-library-page', page.value.toString())
+  next()
+})
+
+const restoreScroll = () => {
+  const savedScroll = sessionStorage.getItem('image-library-scroll')
+  if (savedScroll) {
+    nextTick(() => {
+      const container = document.querySelector('main')
+      if (container) {
+        container.scrollTop = parseInt(savedScroll)
+      } else {
+        window.scrollTo({ top: parseInt(savedScroll), behavior: 'instant' })
+      }
+    })
+  }
+}
+
+onMounted(() => {
+  const savedPage = sessionStorage.getItem('image-library-page')
+  if (savedPage) {
+    page.value = parseInt(savedPage)
+  }
+  
+  // Initial load
+  loadImages().then(() => {
+    restoreScroll()
+  })
+})
+
+onActivated(() => {
+  restoreScroll()
+})
 </script>
 
 <template>
@@ -102,7 +128,7 @@ const getThumbUrl = (id: string) => {
     
     <!-- Pagination -->
     <div v-if="total > limit" class="flex justify-center pb-8">
-      <Pagination v-slot="{ page }" :total="total" :sibling-count="1" show-edges :default-page="1" :items-per-page="limit" @update:page="handlePageChange">
+      <Pagination v-slot="{ page }" :total="total" :sibling-count="1" show-edges :page="page" :items-per-page="limit" @update:page="handlePageChange">
         <PaginationContent v-slot="{ items }" class="flex items-center gap-1">
           <PaginationFirst />
           <PaginationPrevious />

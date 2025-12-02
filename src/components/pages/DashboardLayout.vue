@@ -56,7 +56,11 @@ const breadcrumbs = computed(() => {
       
       <!-- 主内容区域 -->
       <main class="flex-1 overflow-y-auto p-6">
-        <RouterView />
+        <RouterView v-slot="{ Component }">
+          <KeepAlive :include="['ImageLibrary']">
+            <component :is="Component" />
+          </KeepAlive>
+        </RouterView>
       </main>
     </SidebarInset>
   </SidebarProvider>
