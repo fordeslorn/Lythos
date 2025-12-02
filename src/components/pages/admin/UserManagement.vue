@@ -68,7 +68,7 @@ const fetchUsers = async () => {
   try {
     const response = await apiClient.get('/admin/users')
     if (response.data.success) {
-      users.value = response.data.users.map((u: any) => ({
+      const mappedUsers = response.data.users.map((u: any) => ({
         ...u,
         userRights: {
           ...u.userRights,
@@ -77,6 +77,11 @@ const fetchUsers = async () => {
           deleteLimit: u.userRights.deleteLimit || 50
         }
       }))
+      // Sort users: admins first, then regular users
+      users.value = mappedUsers.sort((a: User, b: User) => {
+        if (a.userRights.admin === b.userRights.admin) return 0
+        return a.userRights.admin ? -1 : 1
+      })
     }
   } catch (error) {
     console.error('Failed to fetch users:', error)

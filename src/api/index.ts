@@ -30,3 +30,13 @@ export const imageApi = {
     return `${import.meta.env.VITE_API_BASE_URL}/images/${id}?mode=${mode}`;
   }
 };
+
+export const adminApi = {
+  getUsers: (query?: string) => apiClient.get('/admin/users', { params: { q: query } }),
+  updateUploadVerification: (userId: string, verified: boolean) => apiClient.post('/admin/upload-verify', { userId, verified }),
+  updateUploadSizeLimit: (userId: string, limit: number) => apiClient.post('/admin/upload-size-limit', { userId, limit }),
+  updateUploadLimit: (userId: string, limit: number) => apiClient.post('/admin/upload-limit', { userId, limit }),
+  updateDeleteLimit: (userId: string, limit: number) => apiClient.post('/admin/delete-limit', { userId, limit }),
+  getUserImages: (userId: string) => apiClient.get(`/admin/users/${userId}/images`),
+  deleteImage: (imageId: string) => apiClient.delete(`/admin/images/${imageId}`),
+};

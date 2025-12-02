@@ -1,5 +1,6 @@
 <script setup lang='ts'>
 import UserManagement from './UserManagement.vue'
+import UserImageManagement from './UserImageManagement.vue'
 </script>
 
 <template>
@@ -8,5 +9,8 @@ import UserManagement from './UserManagement.vue'
     
     <!-- User Management Section -->
     <UserManagement />
+
+    <!-- User Image Management Section -->
+    <UserImageManagement />
   </div>
 </template>
