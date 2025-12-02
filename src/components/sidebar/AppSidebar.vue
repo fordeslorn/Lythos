@@ -60,11 +60,11 @@ const data = computed(() => ({
   navSecondary: [
     {
       title: "Document",
-      url: "/docs",
+      url: "/document",
       icon: BookOpen,
       items: [
-        { title: "Introduction", url: "/docs/introduction" },
-        { title: "Spider", url: "/docs/spider" },
+        { title: "Introduction", url: "/document/introduction" },
+        { title: "Spider", url: "/document/spider" },
       ],
     },
     {

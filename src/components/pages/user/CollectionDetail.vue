@@ -215,14 +215,15 @@ onMounted(() => {
             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
           />
-          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+          <!-- Gradient Overlay -->
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           <!-- Remove Button -->
-          <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
              <Button 
                variant="destructive" 
                size="icon" 
-               class="h-8 w-8 rounded-full shadow-sm"
+               class="h-8 w-8 rounded-full shadow-md hover:bg-red-600"
                @click.stop="removeFromCollection(image.id)"
              >
                <Trash2 class="w-4 h-4" />

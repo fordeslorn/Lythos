@@ -49,7 +49,7 @@ const code_sites = [
     title: 'Docker Hub',
     description: 'Platform for developing, shipping, and running applications.',
     url: 'https://hub.docker.com/',
-    favicon: 'https://www.gravatar.com/avatar/7510e100f7ebeca4a0b8c3c617349295?s=40&r=g&d=404',
+    favicon: '/useful-site-icons/dockerhub.png',
     svgIcon: ''
   },
   {
@@ -101,7 +101,7 @@ const tool_sites = [
     title: 'Regexr',
     description: 'Online tool for learning, writing, and testing regular expressions.',
     url: 'https://regexr.com/',
-    favicon: 'https://www.google.com/s2/favicons?domain=regexr.com&sz=32',
+    favicon: '/useful-site-icons/regexr.ico',
     svgIcon: ''
   },
   {
@@ -219,7 +219,7 @@ const resource_sites = [
     title: 'SteamZg',
     description: 'A mixed resource site.',
     url: 'https://steamzg.com/',
-    favicon: 'https://www.google.com/s2/favicons?domain=steamzg.com&sz=32',
+    favicon: '/useful-site-icons/steamzg.webp',
     svgIcon: ''
   },
   {
@@ -314,7 +314,7 @@ const other_sites = [
     title: 'Ifixit',
     description: '通过高质量的维修零件和工具以及强大的社区专业知识，获得你所需要的指导。',
     url: 'https://zh.ifixit.com/',
-    favicon: 'https://www.google.com/s2/favicons?domain=ifixit.com&sz=32',
+    favicon: '/useful-site-icons/ifixit.png',
     svgIcon: ''
   },
   {

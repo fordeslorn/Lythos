@@ -169,9 +169,12 @@ onMounted(() => {
 
     <!-- Upload Queue -->
     <Card v-if="uploadQueue.length > 0">
-      <CardHeader>
+      <CardHeader class="relative">
         <CardTitle>Upload Queue</CardTitle>
         <CardDescription>Review images before uploading.</CardDescription>
+        <div class="absolute top-6 right-6 bg-blue-500 text-primary-foreground px-3 py-1 rounded-full text-xs font-medium shadow-sm">
+          Total: {{ uploadQueue.length }}
+        </div>
       </CardHeader>
       <CardContent>
         <div class="space-y-2">
@@ -198,27 +201,29 @@ onMounted(() => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead class="w-[100px]">Preview</TableHead>
-            <TableHead>ID</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Uploaded At</TableHead>
+            <TableHead class="w-[60px] text-center">No</TableHead>
+            <TableHead class="w-[100px] text-center">Preview</TableHead>
+            <TableHead class="text-center">ID</TableHead>
+            <TableHead class="text-center">Title</TableHead>
+            <TableHead class="text-center">Uploaded At</TableHead>
             <TableHead class="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow v-for="image in images" :key="image.id">
-            <TableCell>
-              <div class="h-12 w-12 rounded overflow-hidden bg-muted">
+          <TableRow v-for="(image, index) in images" :key="image.id">
+            <TableCell class="font-medium text-muted-foreground text-center">{{ index + 1 }}</TableCell>
+            <TableCell class="text-center">
+              <div class="h-12 w-12 rounded overflow-hidden bg-muted mx-auto">
                 <img :src="image.url" :alt="image.title" class="h-full w-full object-cover" />
               </div>
             </TableCell>
-            <TableCell class="font-mono text-xs">{{ image.id }}</TableCell>
-            <TableCell class="font-medium">
+            <TableCell class="font-mono text-xs text-center">{{ image.id }}</TableCell>
+            <TableCell class="font-medium text-center">
               <router-link :to="`/resource/image-library/${image.id}`" class="hover:underline">
                 {{ image.title }}
               </router-link>
             </TableCell>
-            <TableCell>{{ new Date(image.uploadTime).toLocaleString() }}</TableCell>
+            <TableCell class="text-center">{{ new Date(image.uploadTime).toLocaleString() }}</TableCell>
             <TableCell class="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
@@ -237,7 +242,7 @@ onMounted(() => {
             </TableCell>
           </TableRow>
           <TableRow v-if="images.length === 0 && !loading">
-            <TableCell colspan="4" class="h-24 text-center">
+            <TableCell colspan="6" class="h-24 text-center">
               No images found.
             </TableCell>
           </TableRow>

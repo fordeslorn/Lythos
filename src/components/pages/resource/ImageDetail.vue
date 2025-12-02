@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { imageApi } from '@/api'
+import apiClient, { imageApi } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import ImagePreview from '@/components/pages/resource/ImagePreview.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -44,6 +45,7 @@ const collectAnimating = ref(false)
 const collections = ref<any[]>([])
 const isDrawerOpen = ref(false)
 const isDialogOpen = ref(false)
+const isPreviewOpen = ref(false)
 const newCollectionName = ref('')
 const creatingCollection = ref(false)
 
@@ -177,8 +179,27 @@ const goBack = () => {
   router.back()
 }
 
-const getImageUrl = (mode: string) => {
-  return `${import.meta.env.VITE_API_BASE_URL}/images/${imageId}?mode=${mode}`
+const downloadImage = () => {
+  try {
+    // Use the direct download link with download=true parameter
+    // This triggers the backend to set Content-Disposition: attachment
+    const downloadUrl = imageApi.getImageUrl(imageId, 'origin') + '&download=true'
+    
+    const a = document.createElement('a')
+    a.href = downloadUrl
+    a.target = '_blank' // Open in new tab to prevent navigating away if download fails or backend is not updated
+    // The download attribute is often ignored for cross-origin requests, 
+    // but the backend Content-Disposition header will force the download.
+    a.download = image.value.title || 'image.jpg' 
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    
+    notificationStore.showNotification('Download started', 'success')
+  } catch (error) {
+    console.error('Download trigger failed:', error)
+    notificationStore.showNotification('Failed to trigger download', 'error')
+  }
 }
 
 onMounted(() => {
@@ -200,11 +221,12 @@ onMounted(() => {
       <!-- Image Display -->
       <div class="lg:col-span-2">
         <Card class="overflow-hidden bg-black/5 border-0 shadow-sm">
-          <CardContent class="p-0 flex items-center justify-center min-h-[400px] bg-gray-100 dark:bg-zinc-900">
+          <CardContent class="p-0 flex items-center justify-center min-h-[400px] bg-gray-100 dark:bg-zinc-900 relative">
             <img 
-              :src="getImageUrl('detail')" 
+              :src="imageApi.getImageUrl(imageId, 'detail')" 
               :alt="image.title" 
-              class="max-w-full max-h-[80vh] object-contain"
+              class="max-w-full max-h-[80vh] object-contain cursor-pointer"
+              @click="isPreviewOpen = true"
             />
           </CardContent>
         </Card>
@@ -260,15 +282,11 @@ onMounted(() => {
               <span class="text-gray-500">Dimensions</span>
               <span class="font-medium">Original</span>
             </div>
-             <div class="flex justify-between items-center py-2">
-              <span class="text-gray-500">Format</span>
-              <span class="font-medium">JPEG</span>
-            </div>
           </CardContent>
         </Card>
 
         <div class="flex space-x-2">
-           <Button variant="secondary" class="w-full" as="a" :href="getImageUrl('origin')" download target="_blank">
+           <Button variant="secondary" class="w-full bg-white text-black shadow-sm hover:bg-gray-100 border border-gray-200" @click="downloadImage">
              <Download class="w-4 h-4 mr-2" /> Download Original
            </Button>
         </div>
@@ -334,6 +352,13 @@ onMounted(() => {
         </div>
       </DrawerContent>
     </Drawer>
+
+    <ImagePreview 
+      v-if="image"
+      v-model:open="isPreviewOpen" 
+      :image-url="imageApi.getImageUrl(imageId, 'origin')" 
+      :alt-text="image.title" 
+    />
   </div>
 </template>
 

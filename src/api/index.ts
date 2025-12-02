@@ -26,4 +26,7 @@ export const imageApi = {
   addToCollection: (collectionId: number, imageId: string) => apiClient.post(`/collections/${collectionId}/items`, { imageId }),
   removeFromCollection: (collectionId: number, imageId: string) => apiClient.delete(`/collections/${collectionId}/items/${imageId}`),
   getCollectionItems: (collectionId: number) => apiClient.get(`/collections/${collectionId}`),
+  getImageUrl: (id: string, mode: 'thumb' | 'detail' | 'origin' = 'origin') => {
+    return `${import.meta.env.VITE_API_BASE_URL}/images/${id}?mode=${mode}`;
+  }
 };
